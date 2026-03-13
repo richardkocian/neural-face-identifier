@@ -30,7 +30,6 @@ significantly improving discriminative power in noisy domains.
 
 Paper: https://arxiv.org/abs/1801.09414
 
-
 ## Datasets
 
 - MS1MV3: A cleaned version of the MS-Celeb-1M dataset. This serves as the source for our pre-trained backbone (
@@ -39,8 +38,20 @@ Paper: https://arxiv.org/abs/1801.09414
 - "Newspaper Dataset" (People-Gator): A specialized dataset provided by the mentor containing face detections from
   scanned (historical) magazines. This will be our primary training and fine-tuning set.
 
-- WikiFace (wiki_face_112_fin): Used as an additional evaluation benchmark to test the generalization of our model on
-  non-newspaper but related data
+
+- WikiFace (wiki_face_112_fin): Also provided by the mentor, will be used as an additional evaluation benchmark to test
+  the generalization of our model on non-newspaper but related data
+
+### Dataset Statistics
+
+| Dataset          | Identities | Images    | Resolution | Role                      | Size    |
+|:-----------------|:-----------|:----------|:-----------|:--------------------------|:--------|
+| **MS1MV3**       | 93,431     | 5,179,510 | 112x112 px | Pre-training & Evaluation | 29 GB   |
+| **People-Gator** | 589        | 30,700    | See Fig. 1 | Fine-tuning & Evaluation  | 6,62 GB |
+| **WikiFace**     | 1,537      | 3,223     | 112x112 px | Evaluation                | 10,1 MB |
+
+Fig. 1: Distribution of face detection resolutions in the People-Gator dataset:
+![Fig. 1: Distribution of face detection resolutions in the People-Gator dataset.](people-gator-dataset.png)
 
 ## Proposed Solution & Plan
 
