@@ -53,6 +53,14 @@ Paper: https://arxiv.org/abs/1801.09414
 Fig. 1: Distribution of face detection resolutions in the People-Gator dataset:
 ![Fig. 1: Distribution of face detection resolutions in the People-Gator dataset.](people-gator-dataset.png)
 
+**Detailed Statistics for People-Gator Resolution:**
+
+| Metric             | Width (px) | Height (px) |
+|:-------------------|:-----------|:------------|
+| **Mean**           | 351.67     | 412.00      |
+| **Median**         | 318.00     | 370.00      |
+| **Std. Deviation** | 161.21     | 183.43      |
+
 ## Proposed Solution & Plan
 
 We will adopt a transfer learning strategy. Instead of training from scratch, we will adapt a high-performance
