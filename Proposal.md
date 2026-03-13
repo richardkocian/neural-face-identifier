@@ -14,9 +14,22 @@ of scanned print media to allow for reliable person identification across large-
 
 ## Related Work & Inspiration
 
-https://arxiv.org/abs/1801.09414 - CosFace loss function
-https://openaccess.thecvf.com/content/ICCV2021/papers/Caron_Emerging_Properties_in_Self-Supervised_Vision_Transformers_ICCV_2021_paper.pdf
-https://proceedings.neurips.cc/paper_files/paper/2022/file/5e0b46975d1bfe6030b1687b0ada1b85-Paper-Conference.pdf
+### Vision Transformer (ViT-S/8)
+
+We utilize the ViT-S/8 architecture, which processes images as sequences of 8x8 pixel patches. We use a backbone
+pre-trained on the MS1MV3 dataset to leverage robust facial representations learned from millions of identities.
+
+HuggingFace: https://huggingface.co/gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3
+
+### CosFace (Large Margin Cosine Loss)
+
+For fine-tuning, we will use CosFace. This loss function normalizes both features and weights to project them onto a
+hypersphere, introducing a cosine margin (m) in the angular space. This explicitly minimizes intra-class variance (
+keeping images of the same person together) and maximizes inter-class variance (pushing different identities apart),
+significantly improving discriminative power in noisy domains.
+
+Paper: https://arxiv.org/abs/1801.09414
+
 
 ## Datasets
 
