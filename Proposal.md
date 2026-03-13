@@ -14,9 +14,21 @@ of scanned print media to allow for reliable person identification across large-
 
 ## Related Work & Inspiration
 
-https://arxiv.org/abs/1801.09414 - CosFace loss function
-https://openaccess.thecvf.com/content/ICCV2021/papers/Caron_Emerging_Properties_in_Self-Supervised_Vision_Transformers_ICCV_2021_paper.pdf
-https://proceedings.neurips.cc/paper_files/paper/2022/file/5e0b46975d1bfe6030b1687b0ada1b85-Paper-Conference.pdf
+### Vision Transformer (ViT-S/8)
+
+We utilize the ViT-S/8 architecture, which processes images as sequences of 8x8 pixel patches. We use a backbone
+pre-trained on the MS1MV3 dataset to leverage robust facial representations learned from millions of identities.
+
+HuggingFace: https://huggingface.co/gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3
+
+### CosFace (Large Margin Cosine Loss)
+
+For fine-tuning, we will use CosFace. This loss function normalizes both features and weights to project them onto a
+hypersphere, introducing a cosine margin (m) in the angular space. This explicitly minimizes intra-class variance (
+keeping images of the same person together) and maximizes inter-class variance (pushing different identities apart),
+significantly improving discriminative power in noisy domains.
+
+Paper: https://arxiv.org/abs/1801.09414
 
 ## Datasets
 
@@ -26,8 +38,28 @@ https://proceedings.neurips.cc/paper_files/paper/2022/file/5e0b46975d1bfe6030b16
 - "Newspaper Dataset" (People-Gator): A specialized dataset provided by the mentor containing face detections from
   scanned (historical) magazines. This will be our primary training and fine-tuning set.
 
-- WikiFace (wiki_face_112_fin): Used as an additional evaluation benchmark to test the generalization of our model on
-  non-newspaper but related data
+
+- WikiFace (wiki_face_112_fin): Also provided by the mentor, will be used as an additional evaluation benchmark to test
+  the generalization of our model on non-newspaper but related data
+
+### Dataset Statistics
+
+| Dataset          | Identities | Images    | Resolution | Role                      | Size    |
+|:-----------------|:-----------|:----------|:-----------|:--------------------------|:--------|
+| **MS1MV3**       | 93,431     | 5,179,510 | 112x112 px | Pre-training & Evaluation | 29 GB   |
+| **People-Gator** | 589        | 30,700    | See Fig. 1 | Fine-tuning & Evaluation  | 6,62 GB |
+| **WikiFace**     | 1,537      | 3,223     | 112x112 px | Evaluation                | 10,1 MB |
+
+Fig. 1: Distribution of face detection resolutions in the People-Gator dataset:
+<img src="people-gator-dataset.png" alt="Fig. 1: Distribution of face detection resolutions in the People-Gator dataset." width="50%" align="center">
+
+**Detailed Statistics for People-Gator Resolution:**
+
+| Metric             | Width (px) | Height (px) |
+|:-------------------|:-----------|:------------|
+| **Mean**           | 351.67     | 412.00      |
+| **Median**         | 318.00     | 370.00      |
+| **Std. Deviation** | 161.21     | 183.43      |
 
 ## Proposed Solution & Plan
 
