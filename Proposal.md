@@ -51,7 +51,7 @@ Paper: https://arxiv.org/abs/1801.09414
 | **WikiFace**     | 1,537      | 3,223     | 112x112 px | Evaluation                | 10,1 MB |
 
 Fig. 1: Distribution of face detection resolutions in the People-Gator dataset:
-![Fig. 1: Distribution of face detection resolutions in the People-Gator dataset.](people-gator-dataset.png)
+<img src="people-gator-dataset.png" alt="Fig. 1: Distribution of face detection resolutions in the People-Gator dataset." width="50%" align="center">
 
 **Detailed Statistics for People-Gator Resolution:**
 
