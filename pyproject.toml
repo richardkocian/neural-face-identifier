@@ -1,0 +1,12 @@
+[project]
+name = "neural-face-identifier"
+version = "0.1.0"
+authors = [
+    {name = "Richard Kocián (xkocia19)" },
+    {name = "Karel Srna (xsrnak00)" },
+    {name = "Tomáš Zgút (xzgutt00)" },
+]
+
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
