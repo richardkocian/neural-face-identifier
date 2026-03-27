@@ -74,3 +74,65 @@ class WikiFaceDataset(Dataset):
         label = torch.tensor(label_idx, dtype=torch.long)
 
         return image, label
+
+
+def make_dataset_split(csv_path: Path, seed: int, dataset_split: float = 80.0) -> None:
+    """
+    Split a WikiFace CSV into train and test CSVs with non-overlapping identities.
+
+    The split is identity-based, meaning all images of one identity are placed
+    entirely in either train or test. Output files are written next to the input
+    file as `<stem>.train.csv` and `<stem>.test.csv`.
+
+    Parameters
+    ----------
+    csv_path : Path
+        Path to the source CSV file.
+    seed : int
+        Random seed used for deterministic identity shuffling.
+    dataset_split : float, optional
+        Percentage of identities assigned to train split. Defaults to 80.0.
+        Values in (0, 1] are interpreted as a ratio and converted to percent.
+    """
+    csv_path = csv_path.resolve()
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+    if dataset_split <= 0:
+        raise ValueError("dataset_split must be > 0")
+
+    # Accept both ratio style (0.8) and percent style (80.0).
+    if dataset_split <= 1.0:
+        dataset_split *= 100.0
+
+    if dataset_split >= 100:
+        raise ValueError("dataset_split must be < 100")
+
+    df = pd.read_csv(csv_path, sep=";")
+    if "identity" not in df.columns:
+        raise ValueError("CSV must contain an 'identity' column")
+
+    identities = sorted(df["identity"].dropna().unique().tolist())
+    if len(identities) < 2:
+        raise ValueError("Need at least 2 identities to create train/test split")
+
+    shuffled_identities = (
+        pd.Series(identities)
+        .sample(frac=1.0, random_state=seed)
+        .tolist()
+    )
+
+    train_count = int(len(shuffled_identities) * (dataset_split / 100.0))
+    train_count = max(1, min(train_count, len(shuffled_identities) - 1))
+
+    train_identities = set(shuffled_identities[:train_count])
+    test_identities = set(shuffled_identities[train_count:])
+
+    train_df = df[df["identity"].isin(train_identities)].reset_index(drop=True)
+    test_df = df[df["identity"].isin(test_identities)].reset_index(drop=True)
+
+    train_csv = csv_path.with_name(f"{csv_path.stem}.train.csv")
+    test_csv = csv_path.with_name(f"{csv_path.stem}.test.csv")
+    train_df.to_csv(train_csv, sep=";", index=False)
+    test_df.to_csv(test_csv, sep=";", index=False)
+
