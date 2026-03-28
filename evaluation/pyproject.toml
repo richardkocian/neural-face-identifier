@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Evaluation utilities for Neural Face Identifier"
 requires-python = ">=3.12"
 dependencies = [
+	"datasets",
 ]
 
 [project.scripts]
