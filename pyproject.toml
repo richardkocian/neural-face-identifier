@@ -7,17 +7,17 @@ authors = [
     {name = "Tomáš Zgút (xzgutt00)" },
 ]
 
-description = "Add your description here"
+description = "Workspace root for Neural Face Identifier"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "pandas>=3.0.1",
-    "timm>=1.0.26",
-    "torch>=2.11.0",
-    "torchvision>=0.26.0",
-]
- 
-[project.scripts]
-make-wiki-face-split = "datasets.main:main"
+dependencies = []
+
 [tool.uv]
-package = true
+package = false
+
+[tool.uv.workspace]
+members = ["datasets", "evaluation", "training"]
+
+[tool.uv.sources]
+datasets = { workspace = true }
+evaluation = { workspace = true }
