@@ -1,0 +1,13 @@
+[project]
+name = "training"
+version = "0.1.0"
+description = "Training utilities for Neural Face Identifier"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[project.scripts]
+run-training = "training.main:main"
+
+[tool.uv]
+package = true
