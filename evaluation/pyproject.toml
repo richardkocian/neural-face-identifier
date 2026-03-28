@@ -1,0 +1,13 @@
+[project]
+name = "evaluation"
+version = "0.1.0"
+description = "Evaluation utilities for Neural Face Identifier"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[project.scripts]
+run-evaluation = "evaluation.main:main"
+
+[tool.uv]
+package = true

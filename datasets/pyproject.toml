@@ -1,0 +1,17 @@
+[project]
+name = "datasets"
+version = "0.1.0"
+description = "Dataset utilities for Neural Face Identifier"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=3.0.1",
+    "timm>=1.0.26",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+]
+
+[project.scripts]
+make-wiki-face-split = "datasets.main:main"
+
+[tool.uv]
+package = true
