@@ -5,6 +5,8 @@ description = "Evaluation utilities for Neural Face Identifier"
 requires-python = ">=3.12"
 dependencies = [
 	"datasets",
+	"timm>=1.0.26",
+	"torch>=2.11.0",
 ]
 
 [project.scripts]

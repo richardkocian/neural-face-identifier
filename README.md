@@ -17,3 +17,6 @@ uv run --package datasets make-wiki-face-split
 uv run --package evaluation run-evaluation
 uv run --package training run-training
 ```
+
+`run-evaluation` uses `wiki_face_112_fin/wiki_face_112_fin.test.csv` by default.
+
