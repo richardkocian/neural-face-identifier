@@ -11,7 +11,8 @@ dependencies = [
 ]
 
 [project.scripts]
-run-evaluation = "evaluation.main:main"
+run-wikiface-evaluation = "evaluation.main:main_wikiface"
+run-people-gator-evaluation = "evaluation.main:main_people_gator"
 
 [tool.uv]
 package = true
