@@ -5,9 +5,14 @@ description = "Evaluation utilities for Neural Face Identifier"
 requires-python = ">=3.12"
 dependencies = [
 	"datasets",
+	"einops>=0.8.2",
 	"matplotlib>=3.10.7",
+	"pydantic>=2.12.5",
+	"scipy>=1.17.1",
 	"timm>=1.0.26",
 	"torch>=2.11.0",
+	"torchmetrics>=1.9.0",
+	"scipy-stubs~=1.17.1"
 ]
 
 [project.scripts]
