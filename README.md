@@ -18,6 +18,7 @@ uv run --package evaluation run-wikiface-evaluation
 uv run --package evaluation run-people-gator-evaluation
 uv run --package evaluation run-people-gator-embeddings --help
 uv run --package evaluation run-people-gator-retrieval --help
+uv run --package evaluation run-people-gator-retrieval-evaluate --help
 uv run --package training run-training
 ```
 
@@ -56,5 +57,61 @@ uv run --package evaluation run-people-gator-retrieval \
   --queries evaluation/src/peoplegator_namedfaces/retrieval/configs/image_queries.union.tst.jsonl \
   --engine evaluation/src/peoplegator_namedfaces/retrieval/configs/engine.image_embedding.json \
   --output evaluation_artifacts/retrieval.union.tst.pkl
+
+# Build retrieval ground truth JSONL in the format expected by evaluate.py
+uv run python - <<'PY'
+import json
+from collections import defaultdict
+from pathlib import Path
+
+repo = Path(".")
+queries_path = repo / "evaluation/src/peoplegator_namedfaces/retrieval/configs/image_queries.union.tst.jsonl"
+ann_path = repo / "people_gator/people_gator__corresponding_faces__2026-02-11.test.jsonl"
+out_path = repo / "evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl"
+
+face_to_name = {}
+name_to_faces = defaultdict(set)
+with ann_path.open("r") as f:
+    for line in f:
+        row = json.loads(line)
+        face = row["face"]
+        name = row["person_name"]
+        face_to_name[face] = name
+        name_to_faces[name].add(face)
+
+with queries_path.open("r") as f_in, out_path.open("w") as f_out:
+    for line in f_in:
+        q = json.loads(line)
+        person = face_to_name[q["query"]]
+        record = {
+            "query": q["query"],
+            "query_type": q["query_type"],
+            "faces": sorted(name_to_faces[person]),
+        }
+        f_out.write(json.dumps(record) + "\n")
+
+print(out_path)
+PY
+
+# Evaluate retrieval predictions (torchmetrics retrieval metrics -> CSV)
+uv run --package evaluation run-people-gator-retrieval-evaluate \
+  --predictions evaluation_artifacts/retrieval.union.tst.pkl \
+  --ground-truth evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl \
+  --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
+  --top-k 1 5 10 \
+  --ignore-index -1 \
+  --output-file evaluation_artifacts/retrieval.union.tst.metrics.csv
+
+# Optional: add bootstrap confidence intervals (slower)
+uv run --package evaluation run-people-gator-retrieval-evaluate \
+  --predictions evaluation_artifacts/retrieval.union.tst.pkl \
+  --ground-truth evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl \
+  --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
+  --top-k 1 5 10 \
+  --ignore-index -1 \
+  --bootstrap-iters 1000 \
+  --output-file evaluation_artifacts/retrieval.union.tst.metrics.bootstrap.csv
 ```
+
+`run-people-gator-retrieval-evaluate` loads prediction scores for each query, compares them against ground-truth relevant faces, and writes retrieval metrics (`precision`, `recall`, `f1`, `hitrate`, `map`, `mrr`, `ndcg`, `rprecision`, `auroc`) per `top-k` into CSV.
 
