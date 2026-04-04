@@ -97,6 +97,23 @@ def save_top1_misclassified_previews(
 
         out_path = output_dir / f"top1_miss_{saved:03d}_{dataset_suffix}.jpg"
         canvas.save(out_path)
+
+        metadata_path = out_path.with_suffix(".txt")
+        metadata_path.write_text(
+            "\n".join(
+                [
+                    f"query_name: {true_name}",
+                    f"predicted_gallery_name: {pred_name}",
+                    f"correct_gallery_name: {true_name}",
+                    f"top1_cosine_score: {score:.6f}",
+                    f"query_path: {query_path}",
+                    f"predicted_gallery_path: {pred_gallery_path}",
+                    f"correct_gallery_path: {true_gallery_path}",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         saved += 1
 
     return saved
