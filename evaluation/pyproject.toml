@@ -4,10 +4,15 @@ version = "0.1.0"
 description = "Evaluation utilities for Neural Face Identifier"
 requires-python = ">=3.12"
 dependencies = [
+	"datasets",
+	"matplotlib>=3.10.7",
+	"timm>=1.0.26",
+	"torch>=2.11.0",
 ]
 
 [project.scripts]
-run-evaluation = "evaluation.main:main"
+run-wikiface-evaluation = "evaluation.main:main_wikiface"
+run-people-gator-evaluation = "evaluation.main:main_people_gator"
 
 [tool.uv]
 package = true
