@@ -16,6 +16,8 @@ uv sync
 uv run --package datasets make-wiki-face-split
 uv run --package evaluation run-wikiface-evaluation
 uv run --package evaluation run-people-gator-evaluation
+uv run --package evaluation run-people-gator-embeddings --help
+uv run --package evaluation run-people-gator-retrieval --help
 uv run --package training run-training
 ```
 
@@ -37,5 +39,22 @@ uv run --package evaluation run-people-gator-evaluation
 uv run --package evaluation run-people-gator-evaluation \
   --jsonl-path people_gator__corresponding_faces__2026-02-11.test.jsonl \
   --images-root people_gator__data
+
+# Retrieval (image queries)
+# Generate embeddings from PeopleGatorDataset + timm model
+uv run --package evaluation run-people-gator-embeddings \
+  --jsonl-path people_gator/people_gator__corresponding_faces__2026-02-11.test.jsonl \
+  --images-root people_gator/people_gator__data \
+  --output-dir .embeddings/vit_small_patch8_gap_112_cosface_ms1mv3
+
+# 1) Update dataset config paths if needed:
+#    evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json
+# 2) Engine config:
+#    evaluation/src/peoplegator_namedfaces/retrieval/configs/engine.image_embedding.json
+uv run --package evaluation run-people-gator-retrieval \
+  --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
+  --queries evaluation/src/peoplegator_namedfaces/retrieval/configs/image_queries.union.tst.jsonl \
+  --engine evaluation/src/peoplegator_namedfaces/retrieval/configs/engine.image_embedding.json \
+  --output evaluation_artifacts/retrieval.union.tst.pkl
 ```
 
