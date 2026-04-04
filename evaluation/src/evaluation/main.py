@@ -24,7 +24,7 @@ def _build_dataset(default_dataset: str, args) -> WikiFaceDataset | PeopleGatorD
 
 def _main_with_default_dataset(default_dataset: str) -> int:
     args = build_parser(default_dataset=default_dataset).parse_args()
-    dataset_name = default_dataset
+    dataset_name = args.dataset
 
     # Dataset returns (image_tensor, class_index) where image tensor is normalized
     # to [-1, 1] in the dataset preprocessing pipeline.
