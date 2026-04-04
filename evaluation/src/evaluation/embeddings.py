@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+from typing import Any, Protocol, cast
+
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Subset
 
-from datasets.wiki_face_dataset import WikiFaceDataset
+
+class EmbeddingDatasetProtocol(Protocol):
+    def __len__(self) -> int: ...
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]: ...
 
 
-def resolve_dataset_indices(dataset: WikiFaceDataset | Subset) -> list[int]:
+def resolve_dataset_indices(dataset: EmbeddingDatasetProtocol | Subset) -> list[int]:
     if isinstance(dataset, Subset):
         parent_indices = resolve_dataset_indices(dataset.dataset)
         return [parent_indices[int(i)] for i in dataset.indices]
@@ -15,7 +21,7 @@ def resolve_dataset_indices(dataset: WikiFaceDataset | Subset) -> list[int]:
 
 
 def extract_embeddings(
-    dataset: WikiFaceDataset | Subset,
+    dataset: EmbeddingDatasetProtocol | Subset,
     model: torch.nn.Module,
     device: torch.device,
     batch_size: int,
@@ -23,12 +29,12 @@ def extract_embeddings(
     max_samples: int,
 ) -> tuple[torch.Tensor, torch.Tensor, list[int]]:
     if max_samples > 0:
-        dataset = Subset(dataset, range(min(max_samples, len(dataset))))
+        dataset = Subset(cast(Any, dataset), range(min(max_samples, len(dataset))))
 
     sample_indices = resolve_dataset_indices(dataset)
 
     dataloader = DataLoader(
-        dataset,
+        cast(Any, dataset),
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,

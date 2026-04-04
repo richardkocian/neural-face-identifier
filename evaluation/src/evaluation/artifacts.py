@@ -1,16 +1,23 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Protocol
 
 import matplotlib
+import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
-from datasets.wiki_face_dataset import WikiFaceDataset
-
 from .metrics import MisclassifiedItem
+
+
+class ArtifactDatasetProtocol(Protocol):
+    df: pd.DataFrame
+    image_col: str
+    images_root: Path
+    idx_to_class: dict[int, str]
 
 
 def save_top1_score_boxplot(
@@ -38,11 +45,12 @@ def save_top1_score_boxplot(
 
 
 def save_top1_misclassified_previews(
-    dataset: WikiFaceDataset,
+    dataset: ArtifactDatasetProtocol,
     sample_indices: list[int],
     misclassified: list[MisclassifiedItem],
     limit: int,
     output_dir: Path,
+    dataset_suffix: str,
 ) -> int:
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -87,7 +95,7 @@ def save_top1_misclassified_previews(
         draw.text((478, 240), f"Correct gallery: {true_name}", fill=(0, 0, 0))
         draw.text((10, 270), f"Top-1 cosine score: {score:.4f}", fill=(0, 0, 0))
 
-        out_path = output_dir / f"top1_miss_{saved:03d}.jpg"
+        out_path = output_dir / f"top1_miss_{saved:03d}_{dataset_suffix}.jpg"
         canvas.save(out_path)
         saved += 1
 

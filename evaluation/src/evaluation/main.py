@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from typing import Any, cast
+
 import timm
 import torch
 
+from datasets.people_gator_datataset import PeopleGatorDataset
 from datasets.wiki_face_dataset import WikiFaceDataset
 
 from .artifacts import save_top1_misclassified_previews, save_top1_score_boxplot
@@ -11,12 +14,21 @@ from .embeddings import extract_embeddings
 from .metrics import describe_scores, first_quartile, gallery_query_topk
 
 
-def main() -> int:
-    args = build_parser().parse_args()
+def _build_dataset(default_dataset: str, args) -> WikiFaceDataset | PeopleGatorDataset:
+    if default_dataset == "wiki_face":
+        return WikiFaceDataset(csv_path=args.csv_path, images_root=args.images_root)
+    if default_dataset == "people_gator":
+        return PeopleGatorDataset(jsonl_path=args.jsonl_path, images_root=args.images_root)
+    raise ValueError(f"Unsupported dataset backend: {default_dataset}")
+
+
+def _main_with_default_dataset(default_dataset: str) -> int:
+    args = build_parser(default_dataset=default_dataset).parse_args()
+    dataset_name = default_dataset
 
     # Dataset returns (image_tensor, class_index) where image tensor is normalized
     # to [-1, 1] in the dataset preprocessing pipeline.
-    dataset = WikiFaceDataset(csv_path=args.csv_path, images_root=args.images_root)
+    dataset = _build_dataset(dataset_name, args)
 
     if len(dataset) == 0:
         print("Dataset is empty, nothing to evaluate.")
@@ -28,7 +40,7 @@ def main() -> int:
     model.eval()
 
     embeddings, labels, sample_indices = extract_embeddings(
-        dataset=dataset,
+        dataset=cast(Any, dataset),
         model=model,
         device=device,
         batch_size=args.batch_size,
@@ -47,8 +59,12 @@ def main() -> int:
 
     saved_misses = 0
 
-    print("WikiFace evaluation finished.")
-    print(f"CSV: {args.csv_path.resolve()}")
+    print("Evaluation finished.")
+    print(f"Dataset backend: {dataset_name}")
+    if dataset_name == "wiki_face":
+        print(f"CSV: {args.csv_path.resolve()}")
+    else:
+        print(f"JSONL: {args.jsonl_path.resolve()}")
     print(f"Images root: {args.images_root.resolve()}")
     print(f"Samples used: {embeddings.shape[0]}")
     print(f"Classes in samples: {labels.unique().numel()}")
@@ -60,17 +76,21 @@ def main() -> int:
     correct_n, correct_mean, correct_median = describe_scores(correct_scores)
     wrong_n, wrong_mean, wrong_median = describe_scores(wrong_scores)
     correct_q1 = first_quartile(correct_scores)
-    high_score_misclassified = [
-        item for item in misclassified if float(item["score"]) > correct_q1
-    ]
+    high_score_misclassified = [item for item in misclassified if float(item["score"]) > correct_q1]
+    top_score_misclassified = sorted(
+        misclassified,
+        key=lambda item: float(item["score"]),
+        reverse=True,
+    )
 
     if args.show_misclassified_top1 > 0:
         saved_misses = save_top1_misclassified_previews(
-            dataset=dataset,
+            dataset=cast(Any, dataset),
             sample_indices=sample_indices,
-            misclassified=high_score_misclassified,
+            misclassified=top_score_misclassified,
             limit=args.show_misclassified_top1,
             output_dir=args.misclassified_output_dir,
+            dataset_suffix=dataset_name,
         )
 
     print(
@@ -96,6 +116,12 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+def main_wikiface() -> int:
+    return _main_with_default_dataset(default_dataset="wiki_face")
+
+
+def main_people_gator() -> int:
+    return _main_with_default_dataset(default_dataset="people_gator")
+
+
 
