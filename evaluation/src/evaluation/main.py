@@ -110,7 +110,7 @@ def _main_with_default_dataset(default_dataset: str) -> int:
 
     if args.show_misclassified_top1 > 0:
         print(
-            f"Saved Top-1 misclassified previews (score > Q1(correct)): {saved_misses} -> "
+            f"Saved Top-1 misclassified previews (top {args.show_misclassified_top1} highest-scoring mismatches): {saved_misses} -> "
             f"{args.misclassified_output_dir.resolve()}"
         )
     return 0
