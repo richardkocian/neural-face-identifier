@@ -44,7 +44,8 @@ class PeopleGatorDataset(Dataset):
 
         self.df = pd.read_json(self.jsonl_path, lines=True)
         if deduplicate_rows:
-            self.df = self.df.drop_duplicates().reset_index(drop=True)
+            normalized_df = self.df.apply(lambda col: col.map(self._make_hashable))
+            self.df = self.df.loc[~normalized_df.duplicated()].reset_index(drop=True)
 
         if self.image_col not in self.df.columns:
             raise ValueError(f"Missing required image column: {self.image_col}")
@@ -66,6 +67,20 @@ class PeopleGatorDataset(Dataset):
             self.transform = default_transform
         else:
             self.transform = transforms.Compose([default_transform, transform])
+
+    @staticmethod
+    def _make_hashable(value):
+        """Convert nested list/dict values into hashable equivalents."""
+        if isinstance(value, list):
+            return tuple(PeopleGatorDataset._make_hashable(item) for item in value)
+        if isinstance(value, dict):
+            return tuple(
+                sorted(
+                    (key, PeopleGatorDataset._make_hashable(item))
+                    for key, item in value.items()
+                )
+            )
+        return value
 
     def __len__(self):
         return len(self.df)
