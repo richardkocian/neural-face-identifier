@@ -23,8 +23,8 @@ Evaluation defaults and examples:
 
 - `run-wikiface-evaluation` defaults to WikiFace paths
 - `run-people-gator-evaluation` defaults to PeopleGator paths
-- default boxplot names: `top1_cosine_boxplot_wikiface.png` / `top1_cosine_boxplot_people_gator.png`
-- default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wikiface.jpg` or `top1_miss_XXX_people_gator.jpg`
+- default boxplot names: `top1_cosine_boxplot_wiki_face.png` / `top1_cosine_boxplot_people_gator.png`
+- default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wiki_face.jpg` or `top1_miss_XXX_people_gator.jpg`
 
 ```bash
 # WikiFace (default)
