@@ -238,3 +238,19 @@ DET curve plots:
         - 7 aliased names
 - 1103 duplicate rows (same name, same face)
 - after conflict resolution: 1999 unique name face pairs found
+## people gator dataset conflicts report
+1. file `people_gator__corresponding_faces__2026-02-11.test.jsonl`:
+- 78 conflicting annotations (more than 1 name per face):
+    - 53 conflicts (completely diffent person)
+    - 25 alias conflits (different name spelling)
+        - 2 aliased names
+- 4453 duplicate rows (same name, same face)
+- after conflict resolution: 1399 unique name face pairs found
+
+2. file `people_gator__corresponding_faces__2026-02-11.dev.jsonl`:
+- 107 conflicting annotations (more than 1 name per face):
+    - 30 conflicts (completely diffent person)
+    - 77 alias conflits (different name spelling)
+        - 7 aliased names
+- 1103 duplicate rows (same name, same face)
+- after conflict resolution: 1999 unique name face pairs found
