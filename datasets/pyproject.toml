@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-make-wiki-face-split = "datasets.main:main"
+people-gator = "datasets.people_gator_dataset.cli:main"
 
 [tool.uv]
 package = true

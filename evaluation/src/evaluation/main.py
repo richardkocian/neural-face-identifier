@@ -24,7 +24,7 @@ def _build_dataset(default_dataset: str, args) -> WikiFaceDataset | PeopleGatorD
 
 def _main_with_default_dataset(default_dataset: str) -> int:
     args = build_parser(default_dataset=default_dataset).parse_args()
-    dataset_name = default_dataset
+    dataset_name = args.dataset
 
     # Dataset returns (image_tensor, class_index) where image tensor is normalized
     # to [-1, 1] in the dataset preprocessing pipeline.
@@ -110,7 +110,7 @@ def _main_with_default_dataset(default_dataset: str) -> int:
 
     if args.show_misclassified_top1 > 0:
         print(
-            f"Saved Top-1 misclassified previews (score > Q1(correct)): {saved_misses} -> "
+            f"Saved Top-1 misclassified previews (top {args.show_misclassified_top1} highest-scoring mismatches): {saved_misses} -> "
             f"{args.misclassified_output_dir.resolve()}"
         )
     return 0
