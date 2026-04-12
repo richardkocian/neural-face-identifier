@@ -1,0 +1,5 @@
+{
+  "image_paths": ".embeddings/vit_small_patch8_gap_112_cosface_ms1mv3/image_paths.txt",
+  "image_embeddings": ".embeddings/vit_small_patch8_gap_112_cosface_ms1mv3/embeddings.npy"
+}
+

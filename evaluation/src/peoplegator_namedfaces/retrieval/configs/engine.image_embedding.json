@@ -1,0 +1,6 @@
+{
+  "engine": "image_embedding",
+  "threshold": null,
+  "binarize": false
+}
+

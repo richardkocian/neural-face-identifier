@@ -5,14 +5,25 @@ description = "Evaluation utilities for Neural Face Identifier"
 requires-python = ">=3.12"
 dependencies = [
 	"datasets",
+	"einops>=0.8.2",
 	"matplotlib>=3.10.7",
+	"pydantic>=2.12.5",
+	"scipy>=1.17.1",
 	"timm>=1.0.26",
 	"torch>=2.11.0",
+	"torchmetrics>=1.9.0",
+	"scipy-stubs~=1.17.1"
 ]
 
 [project.scripts]
 run-wikiface-evaluation = "evaluation.main:main_wikiface"
 run-people-gator-evaluation = "evaluation.main:main_people_gator"
+run-people-gator-retrieval = "peoplegator_namedfaces.retrieval.run:main"
+run-people-gator-retrieval-evaluate = "peoplegator_namedfaces.retrieval.evaluate:main"
+run-people-gator-embeddings = "evaluation.people_gator_embeddings:main"
+run-people-gator-det = "evaluation.det_curve:main"
+run-people-gator-retrieval-boxplot = "evaluation.retrieval_boxplot:main"
+run-people-gator-retrieval-ground-truth = "evaluation.retrieval_ground_truth:main"
 
 [tool.uv]
 package = true
