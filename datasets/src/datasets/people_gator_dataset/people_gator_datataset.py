@@ -14,10 +14,7 @@ class PeopleGatorDataset(Dataset):
         self,
         jsonl_path: Path,
         images_root: Path,
-        image_col: str = "face",
-        label_col: str = "person_name",
         transform=None,
-        deduplicate_rows: bool = True,
     ):
         """
         Parameters
@@ -26,31 +23,17 @@ class PeopleGatorDataset(Dataset):
             Path to JSONL metadata file.
         images_root : Path
             Root directory where image files are stored.
-        image_col : str, optional
-            Column with relative image paths, by default "face".
-        label_col : str, optional
-            Column with identity labels, by default "person_name".
         transform : callable, optional
             Additional transform applied on top of default preprocessing.
             Default preprocessing is resize to 112x112, tensor conversion,
             and normalization.
-        deduplicate_rows : bool, optional
-            Whether to remove exact duplicate metadata rows.
         """
         self.jsonl_path = Path(jsonl_path).resolve()
         self.images_root = Path(images_root).resolve()
-        self.image_col = image_col
-        self.label_col = label_col
+        self.image_col = "face"
+        self.label_col = "person_name"
 
         self.df = pd.read_json(self.jsonl_path, lines=True)
-        if deduplicate_rows:
-            normalized_df = self.df.apply(lambda col: col.map(self._make_hashable))
-            self.df = self.df.loc[~normalized_df.duplicated()].reset_index(drop=True)
-
-        if self.image_col not in self.df.columns:
-            raise ValueError(f"Missing required image column: {self.image_col}")
-        if self.label_col not in self.df.columns:
-            raise ValueError(f"Missing required label column: {self.label_col}")
 
         classes = sorted(self.df[self.label_col].dropna().unique().tolist())
         self.class_to_idx = {name: idx for idx, name in enumerate(classes)}
@@ -68,19 +51,6 @@ class PeopleGatorDataset(Dataset):
         else:
             self.transform = transforms.Compose([default_transform, transform])
 
-    @staticmethod
-    def _make_hashable(value):
-        """Convert nested list/dict values into hashable equivalents."""
-        if isinstance(value, list):
-            return tuple(PeopleGatorDataset._make_hashable(item) for item in value)
-        if isinstance(value, dict):
-            return tuple(
-                sorted(
-                    (key, PeopleGatorDataset._make_hashable(item))
-                    for key, item in value.items()
-                )
-            )
-        return value
 
     def __len__(self):
         return len(self.df)
