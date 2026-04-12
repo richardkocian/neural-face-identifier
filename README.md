@@ -110,7 +110,7 @@ uv run --package evaluation run-people-gator-retrieval-evaluate \
   --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
   --top-k 1 5 10 \
   --ignore-index -1 \
-  --bootstrap-iters 1000 \
+  --bootstrap-iters 10000 \
   --output-file evaluation_artifacts/retrieval.union.tst.metrics.bootstrap.csv
 
 # DET curve (FPR vs FNR across score thresholds)
