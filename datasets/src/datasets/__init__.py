@@ -1,2 +1,2 @@
-from datasets.people_gator_datataset import PeopleGatorDataset
+from datasets.people_gator_dataset import PeopleGatorDataset
 from datasets.wiki_face_dataset import WikiFaceDataset
