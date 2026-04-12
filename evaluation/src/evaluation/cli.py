@@ -12,7 +12,7 @@ def default_paths() -> dict[str, Path]:
         "wiki_face_csv": repo_root / "wiki_face_112_fin" / "wiki_face_112_fin.test.csv",
         "wiki_face_images": repo_root / "wiki_face_112_fin",
         "people_gator_jsonl": repo_root
-        / "people_gator" / "people_gator__corresponding_faces__2026-02-11.test.jsonl",
+        / "people_gator" / "people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl",
         "people_gator_images": repo_root / "people_gator" / "people_gator__data",
     }
 

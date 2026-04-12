@@ -34,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--jsonl-path",
         type=Path,
-        default=Path("people_gator/people_gator__corresponding_faces__2026-02-11.test.jsonl"),
+        default=Path("people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl"),
         help="PeopleGator JSONL metadata file.",
     )
     parser.add_argument(

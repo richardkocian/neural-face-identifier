@@ -21,6 +21,9 @@ run-people-gator-evaluation = "evaluation.main:main_people_gator"
 run-people-gator-retrieval = "peoplegator_namedfaces.retrieval.run:main"
 run-people-gator-retrieval-evaluate = "peoplegator_namedfaces.retrieval.evaluate:main"
 run-people-gator-embeddings = "evaluation.people_gator_embeddings:main"
+run-people-gator-det = "evaluation.det_curve:main"
+run-people-gator-retrieval-boxplot = "evaluation.retrieval_boxplot:main"
+run-people-gator-retrieval-ground-truth = "evaluation.retrieval_ground_truth:main"
 
 [tool.uv]
 package = true
