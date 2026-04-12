@@ -5,7 +5,7 @@ from typing import Any, cast
 import timm
 import torch
 
-from datasets.people_gator_datataset import PeopleGatorDataset
+from datasets.people_gator_dataset import PeopleGatorDataset
 from datasets.wiki_face_dataset import WikiFaceDataset
 
 from .artifacts import save_top1_misclassified_previews, save_top1_score_boxplot

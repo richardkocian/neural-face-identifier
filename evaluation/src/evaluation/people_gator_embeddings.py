@@ -7,7 +7,7 @@ import numpy as np
 import timm
 import torch
 
-from datasets.people_gator_datataset import PeopleGatorDataset
+from datasets.people_gator_dataset import PeopleGatorDataset
 
 from .embeddings import extract_embeddings
 
