@@ -9,7 +9,7 @@ import torch
 
 from datasets.people_gator_dataset import PeopleGatorDataset
 
-from .embeddings import extract_embeddings
+from ..core.embeddings import extract_embeddings
 
 
 def _default_device() -> str:

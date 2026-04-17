@@ -110,3 +110,4 @@ def first_quartile(scores: list[float]) -> float:
         return float(scores[0])
     quartiles = statistics.quantiles(scores, n=4, method="inclusive")
     return float(quartiles[0])
+
