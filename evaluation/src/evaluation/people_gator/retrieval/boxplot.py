@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import statistics
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,7 +27,15 @@ class MisclassifiedPreviewItem:
     score: float
 
 
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[5]
+
+
 def build_parser() -> argparse.ArgumentParser:
+    default_images_root = _repo_root() / "people_gator" / "people_gator__data"
+    default_annotations = (
+        _repo_root() / "people_gator" / "people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl"
+    )
     parser = argparse.ArgumentParser(
         description="Build Top-1 cosine boxplot (correct vs wrong) from retrieval predictions."
     )
@@ -56,6 +65,24 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("evaluation_artifacts"),
         help="Directory where Top-1 misclassified previews are saved.",
     )
+    parser.add_argument(
+        "--images-root",
+        type=Path,
+        default=default_images_root,
+        help=(
+            "Root directory for image paths stored in retrieval dataset entries. "
+            "Used when dataset paths are relative."
+        ),
+    )
+    parser.add_argument(
+        "--annotations-jsonl",
+        type=Path,
+        default=default_annotations,
+        help=(
+            "People Gator annotations JSONL with fields 'face' and 'person_name'. "
+            "Used to render person names in preview labels."
+        ),
+    )
     return parser
 
 
@@ -65,6 +92,53 @@ def _dataset_image_path(dataset, index: int) -> str:
     if not isinstance(image_path, str) or not image_path:
         raise ValueError(f"Dataset sample at index {index} has invalid image_path.")
     return image_path
+
+
+def _normalize_face_key(face_path: str) -> str:
+    key = Path(face_path).as_posix()
+    if key.startswith("./"):
+        key = key[2:]
+    return key
+
+
+def _load_face_to_person_map(annotations_jsonl: Path) -> dict[str, str]:
+    if not annotations_jsonl.exists():
+        return {}
+
+    face_to_person: dict[str, str] = {}
+    with annotations_jsonl.open("r", encoding="utf-8") as f:
+        for line_num, line in enumerate(f, start=1):
+            row = json.loads(line)
+            if "face" not in row or "person_name" not in row:
+                raise KeyError(
+                    f"Missing required keys in annotations line {line_num}: expected 'face' and 'person_name'."
+                )
+            face_key = _normalize_face_key(str(row["face"]))
+            face_to_person[face_key] = str(row["person_name"])
+    return face_to_person
+
+
+def _person_name_for_path(image_path: str, face_to_person: dict[str, str]) -> str:
+    norm = _normalize_face_key(image_path)
+    if norm in face_to_person:
+        return face_to_person[norm]
+
+    path_obj = Path(norm)
+    if path_obj.name in face_to_person:
+        return face_to_person[path_obj.name]
+
+    if path_obj.parent.name:
+        return path_obj.parent.name
+    return path_obj.stem
+
+
+def _resolve_image_path(image_path: str, images_root: Path | None) -> Path:
+    path_obj = Path(image_path)
+    if path_obj.exists():
+        return path_obj
+    if images_root is not None:
+        return images_root / path_obj
+    return path_obj
 
 
 def _top1_scores_with_misclassified(
@@ -147,15 +221,18 @@ def _save_top1_misclassified_previews(
     limit: int,
     output_dir: Path,
     dataset_suffix: str,
+    images_root: Path | None,
+    face_to_person: dict[str, str],
 ) -> int:
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     saved = 0
     for item in sorted(misclassified, key=lambda x: float(x.score), reverse=True)[:limit]:
-        query_path = Path(item.query_path)
-        predicted_path = Path(item.predicted_gallery_path)
-        correct_path = Path(item.correct_gallery_path)
+        query_path = _resolve_image_path(item.query_path, images_root=images_root)
+        predicted_path = _resolve_image_path(item.predicted_gallery_path, images_root=images_root)
+        correct_path = _resolve_image_path(item.correct_gallery_path, images_root=images_root)
+
         if not query_path.exists() or not predicted_path.exists() or not correct_path.exists():
             continue
 
@@ -163,14 +240,18 @@ def _save_top1_misclassified_previews(
         predicted_img = Image.open(predicted_path).convert("RGB").resize((224, 224))
         correct_img = Image.open(correct_path).convert("RGB").resize((224, 224))
 
+        query_name = _person_name_for_path(item.query_path, face_to_person=face_to_person)
+        predicted_name = _person_name_for_path(item.predicted_gallery_path, face_to_person=face_to_person)
+        correct_name = _person_name_for_path(item.correct_gallery_path, face_to_person=face_to_person)
+
         canvas = Image.new("RGB", (224 * 3 + 40, 300), color=(250, 250, 250))
         draw = ImageDraw.Draw(canvas)
         canvas.paste(query_img, (10, 10))
         canvas.paste(predicted_img, (244, 10))
         canvas.paste(correct_img, (478, 10))
-        draw.text((10, 240), "Query", fill=(0, 0, 0))
-        draw.text((244, 240), "Predicted gallery", fill=(0, 0, 0))
-        draw.text((478, 240), "Correct gallery", fill=(0, 0, 0))
+        draw.text((10, 240), f"Query: {query_name}", fill=(0, 0, 0))
+        draw.text((244, 240), f"Predicted gallery: {predicted_name}", fill=(0, 0, 0))
+        draw.text((478, 240), f"Correct gallery: {correct_name}", fill=(0, 0, 0))
         draw.text((10, 270), f"Top-1 cosine score: {item.score:.4f}", fill=(0, 0, 0))
 
         out_path = output_dir / f"top1_miss_{saved:03d}_{dataset_suffix}.png"
@@ -181,6 +262,9 @@ def _save_top1_misclassified_previews(
             "\n".join(
                 [
                     f"top1_cosine_score: {item.score:.6f}",
+                    f"query_name: {query_name}",
+                    f"predicted_gallery_name: {predicted_name}",
+                    f"correct_gallery_name: {correct_name}",
                     f"query_path: {query_path}",
                     f"predicted_gallery_path: {predicted_path}",
                     f"correct_gallery_path: {correct_path}",
@@ -271,11 +355,14 @@ def main() -> int:
     high_score_wrong = [x for x in wrong_scores if x > correct_q1] if np.isfinite(correct_q1) else []
     saved_misses = 0
     if args.show_misclassified_top1 > 0:
+        face_to_person = _load_face_to_person_map(args.annotations_jsonl)
         saved_misses = _save_top1_misclassified_previews(
             misclassified=misclassified,
             limit=args.show_misclassified_top1,
             output_dir=args.misclassified_output_dir,
             dataset_suffix="people_gator_retrieval",
+            images_root=args.images_root,
+            face_to_person=face_to_person,
         )
 
     print("Top-1 retrieval boxplot finished.")

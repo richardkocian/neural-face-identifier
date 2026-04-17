@@ -127,17 +127,20 @@ uv run --package evaluation run-people-gator-retrieval-det \
 
 # Top-1 cosine boxplot from retrieval predictions
 # Also saves Top-1 wrong previews by default (top 10): query + predicted gallery + correct gallery (+ .txt metadata)
+# Person names in preview labels are loaded from --annotations-jsonl.
 uv run --package evaluation run-people-gator-retrieval-boxplot \
   --predictions evaluation_artifacts/retrieval.union.tst.pkl \
   --ground-truth evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl \
   --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
+  --images-root people_gator/people_gator__data \
+  --annotations-jsonl people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --ignore-index -1 \
   --output-image evaluation_artifacts/retrieval.union.tst.top1_cosine_boxplot.png
 ```
 
 `run-people-gator-retrieval-evaluate` loads prediction scores for each query, compares them against ground-truth relevant faces, and writes retrieval metrics (`precision`, `recall`, `f1`, `hitrate`, `map`, `mrr`, `ndcg`, `rprecision`, `auroc`) per `top-k` into CSV.
 `run-people-gator-retrieval-det` builds a DET curve from the same predictions + ground truth and reports `EER` (equal error rate).
-`run-people-gator-retrieval-boxplot` takes the Top-1 score per query, splits it into correct vs wrong retrievals, and saves a cosine-score boxplot (same style as legacy evaluation).
+`run-people-gator-retrieval-boxplot` takes the Top-1 score per query, splits it into correct vs wrong retrievals, and saves a cosine-score boxplot (same style as legacy evaluation). It also saves Top-1 misclassified previews with person names for query/predicted/correct images.
 
 ## Retrieval metrics explained
 
