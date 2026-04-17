@@ -61,12 +61,16 @@ uv run --package datasets people-gator split-dataset \
 
 - `run-wikiface-evaluation` defaults to WikiFace paths
 - `run-people-gator-evaluation` defaults to PeopleGator paths
-- default boxplot names: `top1_cosine_boxplot_wiki_face.png` / `top1_cosine_boxplot_people_gator.png`
+- default boxplot names: `top1_cosine_boxplot_wikiface.png` / `top1_cosine_boxplot_people_gator.png`
+- `run-wikiface-evaluation` also generates DET outputs by default: `top1_det_wikiface.png` and `top1_det_wikiface.csv`
 - default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wiki_face.jpg` or `top1_miss_XXX_people_gator.jpg`
 
 ```bash
 # WikiFace (default)
 uv run --package evaluation run-wikiface-evaluation
+
+# WikiFace without DET generation
+uv run --package evaluation run-wikiface-evaluation --no-det-enabled
 
 # PeopleGator (default)
 uv run --package evaluation run-people-gator-evaluation
