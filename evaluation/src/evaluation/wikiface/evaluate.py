@@ -15,8 +15,7 @@ from ..core.embeddings import extract_embeddings
 from ..core.metrics import (
     describe_scores,
     first_quartile,
-    gallery_query_pair_labels_scores,
-    gallery_query_topk,
+    gallery_query_topk_with_pair_labels_scores,
 )
 from ..people_gator.retrieval.det_curve import compute_det, save_det_csv, save_det_plot
 
@@ -135,8 +134,8 @@ def main() -> int:
         num_workers=args.num_workers,
         max_samples=args.max_samples,
     )
-    metrics, misclassified, correct_scores, wrong_scores = gallery_query_topk(
-        embeddings, labels, ks=(1, 5)
+    metrics, misclassified, correct_scores, wrong_scores, y_true_t, y_score_t = (
+        gallery_query_topk_with_pair_labels_scores(embeddings, labels, ks=(1, 5))
     )
 
     boxplot_path = save_top1_score_boxplot(
@@ -166,7 +165,6 @@ def main() -> int:
             dataset_suffix="wiki_face",
         )
 
-    y_true_t, y_score_t = gallery_query_pair_labels_scores(embeddings=embeddings, labels=labels)
     thresholds, fpr, fnr = compute_det(
         y_true=y_true_t.cpu().numpy().astype(np.int8),
         y_score=y_score_t.cpu().numpy().astype(np.float64),
@@ -222,4 +220,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

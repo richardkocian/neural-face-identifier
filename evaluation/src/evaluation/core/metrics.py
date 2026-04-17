@@ -24,35 +24,25 @@ def _gallery_query_indices(labels: torch.Tensor) -> tuple[list[int], list[int]]:
     return gallery_idx, query_idx
 
 
-def gallery_query_pair_labels_scores(
+def _gallery_query_parts(
     embeddings: torch.Tensor,
     labels: torch.Tensor,
-) -> tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[list[int], list[int], torch.Tensor, torch.Tensor, torch.Tensor]:
     gallery_idx, query_idx = _gallery_query_indices(labels=labels)
-    gallery_emb = embeddings[gallery_idx]
     gallery_labels = labels[gallery_idx]
-    query_emb = embeddings[query_idx]
     query_labels = labels[query_idx]
-
-    sims = query_emb @ gallery_emb.T
-    y_true = (query_labels.unsqueeze(1) == gallery_labels.unsqueeze(0)).to(torch.int8).reshape(-1)
-    y_score = sims.reshape(-1)
-    return y_true, y_score
+    sims = embeddings[query_idx] @ embeddings[gallery_idx].T
+    return gallery_idx, query_idx, gallery_labels, query_labels, sims
 
 
-def gallery_query_topk(
-    embeddings: torch.Tensor,
-    labels: torch.Tensor,
-    ks: tuple[int, ...] = (1, 5),
+def _topk_outputs_from_parts(
+    gallery_idx: list[int],
+    query_idx: list[int],
+    gallery_labels: torch.Tensor,
+    query_labels: torch.Tensor,
+    sims: torch.Tensor,
+    ks: tuple[int, ...],
 ) -> tuple[dict[int, float], list[MisclassifiedItem], list[float], list[float]]:
-    gallery_idx, query_idx = _gallery_query_indices(labels=labels)
-
-    gallery_emb = embeddings[gallery_idx]
-    gallery_labels = labels[gallery_idx]
-    query_emb = embeddings[query_idx]
-    query_labels = labels[query_idx]
-
-    sims = query_emb @ gallery_emb.T
     max_k = min(max(ks), sims.shape[1])
     topk_indices = sims.topk(k=max_k, dim=1).indices
     topk_labels = gallery_labels[topk_indices]
@@ -97,6 +87,60 @@ def gallery_query_topk(
     return metrics, misclassified, correct_scores, wrong_scores
 
 
+def gallery_query_pair_labels_scores(
+    embeddings: torch.Tensor,
+    labels: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    _, _, gallery_labels, query_labels, sims = _gallery_query_parts(
+        embeddings=embeddings,
+        labels=labels,
+    )
+    y_true = (query_labels.unsqueeze(1) == gallery_labels.unsqueeze(0)).to(torch.int8).reshape(-1)
+    y_score = sims.reshape(-1)
+    return y_true, y_score
+
+
+def gallery_query_topk(
+    embeddings: torch.Tensor,
+    labels: torch.Tensor,
+    ks: tuple[int, ...] = (1, 5),
+) -> tuple[dict[int, float], list[MisclassifiedItem], list[float], list[float]]:
+    gallery_idx, query_idx, gallery_labels, query_labels, sims = _gallery_query_parts(
+        embeddings=embeddings,
+        labels=labels,
+    )
+    return _topk_outputs_from_parts(
+        gallery_idx=gallery_idx,
+        query_idx=query_idx,
+        gallery_labels=gallery_labels,
+        query_labels=query_labels,
+        sims=sims,
+        ks=ks,
+    )
+
+
+def gallery_query_topk_with_pair_labels_scores(
+    embeddings: torch.Tensor,
+    labels: torch.Tensor,
+    ks: tuple[int, ...] = (1, 5),
+) -> tuple[dict[int, float], list[MisclassifiedItem], list[float], list[float], torch.Tensor, torch.Tensor]:
+    gallery_idx, query_idx, gallery_labels, query_labels, sims = _gallery_query_parts(
+        embeddings=embeddings,
+        labels=labels,
+    )
+    metrics, misclassified, correct_scores, wrong_scores = _topk_outputs_from_parts(
+        gallery_idx=gallery_idx,
+        query_idx=query_idx,
+        gallery_labels=gallery_labels,
+        query_labels=query_labels,
+        sims=sims,
+        ks=ks,
+    )
+    y_true = (query_labels.unsqueeze(1) == gallery_labels.unsqueeze(0)).to(torch.int8).reshape(-1)
+    y_score = sims.reshape(-1)
+    return metrics, misclassified, correct_scores, wrong_scores, y_true, y_score
+
+
 def describe_scores(scores: list[float]) -> tuple[int, float, float]:
     if not scores:
         return 0, float("nan"), float("nan")
@@ -110,4 +154,3 @@ def first_quartile(scores: list[float]) -> float:
         return float(scores[0])
     quartiles = statistics.quantiles(scores, n=4, method="inclusive")
     return float(quartiles[0])
-
