@@ -109,7 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--det-title",
         type=str,
-        default="DET curve - Wikiface",
+        default="DET curve - WikiFace",
         help="Plot title for DET curve output.",
     )
     return parser
