@@ -139,7 +139,6 @@ def save_det_plot(output_image: Path, fpr: np.ndarray, fnr: np.ndarray, title: s
 
     plt.figure(figsize=(6, 5))
     plt.plot(x, y, label=f"DET (EER={eer:.4f})")
-    # Keep labels readable by showing a sparser subset of ticks.
     show_tick_perc = np.array([0.1, 0.5, 1, 2, 5, 10, 20, 40, 60, 80, 90, 95, 99, 99.9])
     show_tick_pos = norm.ppf(show_tick_perc / 100.0)
     plt.xticks(show_tick_pos, [f"{t:g}" for t in show_tick_perc], rotation=45)

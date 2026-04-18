@@ -14,14 +14,13 @@ Basic commands:
 ```bash
 uv sync
 uv run --package datasets people-gator
-uv run --package evaluation run-wikiface-evaluation
-uv run --package evaluation run-people-gator-evaluation
+uv run --package evaluation run-wikiface
 uv run --package evaluation run-people-gator-embeddings --help
 uv run --package evaluation run-people-gator-retrieval --help
 uv run --package evaluation run-people-gator-retrieval-evaluate --help
-uv run --package evaluation run-people-gator-det --help
+uv run --package evaluation run-people-gator-retrieval-det --help
 uv run --package evaluation run-people-gator-retrieval-boxplot --help
-uv run --package evaluation run-people-gator-retrieval-ground-truth --help
+uv run --package evaluation run-people-gator-retrieval-gt --help
 uv run --package training run-training
 ```
 
@@ -59,24 +58,24 @@ uv run --package datasets people-gator split-dataset \
 
 ## Evaluation defaults and examples:
 
-- `run-wikiface-evaluation` defaults to WikiFace paths
-- `run-people-gator-evaluation` defaults to PeopleGator paths
-- default boxplot names: `top1_cosine_boxplot_wikiface.png` / `top1_cosine_boxplot_people_gator.png`
-- `run-wikiface-evaluation` also generates DET outputs by default: `top1_det_wikiface.png` and `top1_det_wikiface.csv`
-- default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wiki_face.jpg` or `top1_miss_XXX_people_gator.jpg`
+### WikiFace evaluation
+
+- `run-wikiface` is a dataset-specific script (WikiFace only).
+- It always generates:
+  - Top-1 cosine boxplot (`top1_cosine_boxplot_wikiface.png`)
+  - DET plot + CSV (`top1_det_wikiface.png`, `top1_det_wikiface.csv`)
+- default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wiki_face.jpg`
 
 ```bash
 # WikiFace (default)
-uv run --package evaluation run-wikiface-evaluation
+uv run --package evaluation run-wikiface
+```
 
-# WikiFace without DET generation
-uv run --package evaluation run-wikiface-evaluation --no-det-enabled
+### People Gator retrieval evaluation
 
-# PeopleGator (default)
-uv run --package evaluation run-people-gator-evaluation
+```bash
+# PeopleGator embeddings for retrieval
 
-# Retrieval (image queries)
-# Generate embeddings from PeopleGatorDataset + timm model
 uv run --package evaluation run-people-gator-embeddings \
   --jsonl-path people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --images-root people_gator/people_gator__data \
@@ -93,7 +92,7 @@ uv run --package evaluation run-people-gator-retrieval \
   --output evaluation_artifacts/retrieval.union.tst.pkl
 
 # Build retrieval ground truth JSONL in the format expected by evaluate.py
-uv run --package evaluation run-people-gator-retrieval-ground-truth \
+uv run --package evaluation run-people-gator-retrieval-gt \
   --queries evaluation/src/peoplegator_namedfaces/retrieval/configs/image_queries.union.tst.jsonl \
   --annotations people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --output evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl
@@ -118,7 +117,7 @@ uv run --package evaluation run-people-gator-retrieval-evaluate \
   --output-file evaluation_artifacts/retrieval.union.tst.metrics.bootstrap.csv
 
 # DET curve (FPR vs FNR across score thresholds)
-uv run --package evaluation run-people-gator-det \
+uv run --package evaluation run-people-gator-retrieval-det \
   --predictions evaluation_artifacts/retrieval.union.tst.pkl \
   --ground-truth evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl \
   --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
@@ -127,17 +126,21 @@ uv run --package evaluation run-people-gator-det \
   --output-csv evaluation_artifacts/retrieval.union.tst.det.csv
 
 # Top-1 cosine boxplot from retrieval predictions
+# Also saves Top-1 wrong previews by default (top 10): query + predicted gallery + correct gallery (+ .txt metadata)
+# Person names in preview labels are loaded from --annotations-jsonl.
 uv run --package evaluation run-people-gator-retrieval-boxplot \
   --predictions evaluation_artifacts/retrieval.union.tst.pkl \
   --ground-truth evaluation_artifacts/retrieval.union.tst.ground_truth.jsonl \
   --dataset evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json \
+  --images-root people_gator/people_gator__data \
+  --annotations-jsonl people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --ignore-index -1 \
   --output-image evaluation_artifacts/retrieval.union.tst.top1_cosine_boxplot.png
 ```
 
 `run-people-gator-retrieval-evaluate` loads prediction scores for each query, compares them against ground-truth relevant faces, and writes retrieval metrics (`precision`, `recall`, `f1`, `hitrate`, `map`, `mrr`, `ndcg`, `rprecision`, `auroc`) per `top-k` into CSV.
-`run-people-gator-det` builds a DET curve from the same predictions + ground truth and reports `EER` (equal error rate).
-`run-people-gator-retrieval-boxplot` takes the Top-1 score per query, splits it into correct vs wrong retrievals, and saves a cosine-score boxplot (same style as legacy evaluation).
+`run-people-gator-retrieval-det` builds a DET curve from the same predictions + ground truth and reports `EER` (equal error rate).
+`run-people-gator-retrieval-boxplot` takes the Top-1 score per query, splits it into correct vs wrong retrievals, and saves a cosine-score boxplot (same style as legacy evaluation). It also saves Top-1 misclassified previews with person names for query/predicted/correct images.
 
 ## Retrieval metrics explained
 

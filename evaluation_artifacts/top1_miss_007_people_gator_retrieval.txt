@@ -1,0 +1,7 @@
+top1_cosine_score: 0.579777
+query_name: Bedřich Kolliner
+predicted_gallery_name: Adolf Hitler
+correct_gallery_name: Bedřich Kolliner
+query_path: people_gator/people_gator__data/kvkli/944688a8-de7e-400f-aa86-20e74dbfdad9.peoplegator_aligned_crops/4c20688d-ca98-11e5-a54b-001b21d0d3a4__image_0__face_1.jpg
+predicted_gallery_path: people_gator/people_gator__data/kvkli/01fa9f5f-f60d-4125-9ef4-c5ab46f647b2.peoplegator_aligned_crops/349ddde4-bdcb-11e5-983c-001b21d0d3a4__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/kvkli/4cae2320-55eb-4dd2-a406-41ed3a7b04af.peoplegator_aligned_crops/1373a85d-ca96-11e5-a54b-001b21d0d3a4__photograph_0__face_1.jpg
