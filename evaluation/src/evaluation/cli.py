@@ -38,6 +38,15 @@ def build_parser(default_dataset: str = "wiki_face") -> argparse.ArgumentParser:
         Path("evaluation_artifacts")
         / f"top1_cosine_boxplot_{default_dataset.replace('wiki_face', 'wikiface')}.png"
     )
+    default_det_image_path = (
+        Path("evaluation_artifacts")
+        / f"top1_det_{default_dataset.replace('wiki_face', 'wikiface')}.png"
+    )
+    default_det_csv_path = (
+        Path("evaluation_artifacts")
+        / f"top1_det_{default_dataset.replace('wiki_face', 'wikiface')}.csv"
+    )
+    default_det_enabled = default_dataset == "wiki_face"
     parser = argparse.ArgumentParser(
         description="Evaluate a face-embedding model with gallery/query identification."
     )
@@ -106,5 +115,29 @@ def build_parser(default_dataset: str = "wiki_face") -> argparse.ArgumentParser:
         type=Path,
         default=default_boxplot_path,
         help="Where to save boxplot of Top-1 cosine scores (correct vs misclassified).",
+    )
+    parser.add_argument(
+        "--det-enabled",
+        action=argparse.BooleanOptionalAction,
+        default=default_det_enabled,
+        help="Generate DET curve from gallery/query cosine scores.",
+    )
+    parser.add_argument(
+        "--det-image-path",
+        type=Path,
+        default=default_det_image_path,
+        help="Where to save DET plot image (.png).",
+    )
+    parser.add_argument(
+        "--det-csv-path",
+        type=Path,
+        default=default_det_csv_path,
+        help="Where to save DET CSV with threshold,FPR,FNR.",
+    )
+    parser.add_argument(
+        "--det-title",
+        type=str,
+        default=f"DET curve - {default_dataset.replace('_', ' ').title()}",
+        help="Plot title for DET curve output.",
     )
     return parser

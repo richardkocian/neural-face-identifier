@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
+import numpy as np
 import timm
 import torch
 
@@ -10,8 +11,14 @@ from datasets.wiki_face_dataset import WikiFaceDataset
 
 from .artifacts import save_top1_misclassified_previews, save_top1_score_boxplot
 from .cli import build_parser
+from .det_curve import compute_det, save_det_csv, save_det_plot
 from .embeddings import extract_embeddings
-from .metrics import describe_scores, first_quartile, gallery_query_topk
+from .metrics import (
+    describe_scores,
+    first_quartile,
+    gallery_query_pair_labels_scores,
+    gallery_query_topk,
+)
 
 
 def _build_dataset(default_dataset: str, args) -> WikiFaceDataset | PeopleGatorDataset:
@@ -108,6 +115,29 @@ def _main_with_default_dataset(default_dataset: str) -> int:
     )
     print(f"Saved Top-1 cosine boxplot: {boxplot_path}")
 
+    if args.det_enabled:
+        y_true_t, y_score_t = gallery_query_pair_labels_scores(embeddings=embeddings, labels=labels)
+        thresholds, fpr, fnr = compute_det(
+            y_true=y_true_t.cpu().numpy().astype(np.int8),
+            y_score=y_score_t.cpu().numpy().astype(np.float64),
+        )
+        eer_idx = int(np.argmin(np.abs(fpr - fnr)))
+        det_eer = float((fpr[eer_idx] + fnr[eer_idx]) / 2.0)
+
+        det_image_path = args.det_image_path.resolve()
+        det_csv_path = args.det_csv_path.resolve()
+        save_det_csv(output_csv=det_csv_path, thresholds=thresholds, fpr=fpr, fnr=fnr)
+        save_det_plot(
+            output_image=det_image_path,
+            fpr=fpr,
+            fnr=fnr,
+            title=args.det_title,
+            eer=det_eer,
+        )
+        print(f"DET EER: {det_eer:.6f}")
+        print(f"Saved DET CSV: {det_csv_path}")
+        print(f"Saved DET plot: {det_image_path}")
+
     if args.show_misclassified_top1 > 0:
         print(
             f"Saved Top-1 misclassified previews (top {args.show_misclassified_top1} highest-scoring mismatches): {saved_misses} -> "
@@ -122,6 +152,4 @@ def main_wikiface() -> int:
 
 def main_people_gator() -> int:
     return _main_with_default_dataset(default_dataset="people_gator")
-
-
 

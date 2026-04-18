@@ -7,11 +7,7 @@ import torch
 MisclassifiedItem = dict[str, int | float]
 
 
-def gallery_query_topk(
-    embeddings: torch.Tensor,
-    labels: torch.Tensor,
-    ks: tuple[int, ...] = (1, 5),
-) -> tuple[dict[int, float], list[MisclassifiedItem], list[float], list[float]]:
+def _gallery_query_indices(labels: torch.Tensor) -> tuple[list[int], list[int]]:
     unique_labels = labels.unique(sorted=True)
     gallery_idx: list[int] = []
     query_idx: list[int] = []
@@ -25,6 +21,31 @@ def gallery_query_topk(
 
     if not query_idx:
         raise ValueError("Need at least one identity with >=2 images to build query samples.")
+    return gallery_idx, query_idx
+
+
+def gallery_query_pair_labels_scores(
+    embeddings: torch.Tensor,
+    labels: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    gallery_idx, query_idx = _gallery_query_indices(labels=labels)
+    gallery_emb = embeddings[gallery_idx]
+    gallery_labels = labels[gallery_idx]
+    query_emb = embeddings[query_idx]
+    query_labels = labels[query_idx]
+
+    sims = query_emb @ gallery_emb.T
+    y_true = (query_labels.unsqueeze(1) == gallery_labels.unsqueeze(0)).to(torch.int8).reshape(-1)
+    y_score = sims.reshape(-1)
+    return y_true, y_score
+
+
+def gallery_query_topk(
+    embeddings: torch.Tensor,
+    labels: torch.Tensor,
+    ks: tuple[int, ...] = (1, 5),
+) -> tuple[dict[int, float], list[MisclassifiedItem], list[float], list[float]]:
+    gallery_idx, query_idx = _gallery_query_indices(labels=labels)
 
     gallery_emb = embeddings[gallery_idx]
     gallery_labels = labels[gallery_idx]
@@ -89,4 +110,3 @@ def first_quartile(scores: list[float]) -> float:
         return float(scores[0])
     quartiles = statistics.quantiles(scores, n=4, method="inclusive")
     return float(quartiles[0])
-
