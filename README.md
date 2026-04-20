@@ -1,4 +1,4 @@
-# Neural Face Identifier
+    # Neural Face Identifier
 
 Authors: Richard Kocián (xkocia19), Karel Srna (xsrnak00), Tomáš Zgút (xzgutt00)
 
@@ -55,6 +55,79 @@ uv run --package datasets people-gator split-dataset \
   --splits 0.8 \
   --split-names train test
 ```
+
+PeopleGator augmentation generation:
+
+```bash
+# Run all augmentations (default)
+uv run --package datasets people-gator generate-augmentations \
+  --input-jsonl /path/to/people_gator.cleaned.jsonl \
+  --images-root /path/to/people_gator__data \
+  --destination-root /path/to/output_augmented
+
+# Run selected augmentations only
+uv run --package datasets people-gator generate-augmentations \
+  --input-jsonl /path/to/people_gator.cleaned.jsonl \
+  --images-root /path/to/people_gator__data \
+  --destination-root /path/to/output_augmented \
+  --augmentations crop low-res
+
+# Explicitly skip augmentation generation
+uv run --package datasets people-gator generate-augmentations \
+  --input-jsonl /path/to/people_gator.cleaned.jsonl \
+  --images-root /path/to/people_gator__data \
+  --destination-root /path/to/output_augmented \
+  --augmentations none
+```
+
+Notes:
+- Supported augmentation selectors: `all`, `none`, `crop`, `low-res`, `photo`.
+- For each selected augmentation, a separate JSONL is written to destination root:
+  `{input-stem}.crop.jsonl`, `{input-stem}.low-res.jsonl`, `{input-stem}.photo.jsonl`.
+- Generated records include `augmentation` and updated `face` path.
+- Generated image path pattern:
+  `{destination-root}/{augmentation}/{original-parent}/{original-stem}__aug-{augmentation}{suffix}`.
+
+Augmentation methods:
+- `crop`: RandomResizedCrop is sampled and pasted into a zero-filled image canvas of the original size, so only a region of the face remains visible while the rest is black.
+- `low-res`: Image is downscaled to a randomly chosen smaller square size and then upscaled back with random interpolation methods, simulating blur/pixelation and resampling artifacts.
+- `photo`: Photometric jitter is applied (brightness, contrast, saturation) in randomized order and strengths to simulate lighting/color variation.
+- `none`: No augmentation is applied. In generation mode this means nothing is produced when `--augmentations none` is used.
+
+PeopleGator dataset filtering by augmentation:
+
+The subclass AugmentedPeopleGatorDataset can load an aggregated JSONL and keep only one augmentation type.
+
+    from pathlib import Path
+    from datasets.people_gator_dataset import AugmentedPeopleGatorDataset
+    from datasets.people_gator_dataset.augmenter import AugmentationType
+
+    # No filtering (default): keeps all rows.
+    ds_all = AugmentedPeopleGatorDataset(
+        jsonl_path=Path("/path/to/aggregated.jsonl"),
+        images_root=Path("/path/to/images_root"),
+    )
+
+    # Keep only rows with augmentation == "photo".
+    ds_photo = AugmentedPeopleGatorDataset(
+        jsonl_path=Path("/path/to/aggregated.jsonl"),
+        images_root=Path("/path/to/images_root"),
+        augmentation_filter=AugmentationType.PhotocentricAug,
+    )
+
+    # Keep only rows with augmentation == "none".
+    ds_none = AugmentedPeopleGatorDataset(
+        jsonl_path=Path("/path/to/aggregated.jsonl"),
+        images_root=Path("/path/to/images_root"),
+        augmentation_filter=AugmentationType.NoAug,
+    )
+
+Filtering behavior:
+- The filter must be an AugmentationType enum value.
+- If the augmentation column is missing:
+  AugmentationType.NoAug keeps all rows, any other filter returns an empty dataset.
+- If the augmentation column contains unknown values, dataset construction raises a ValueError.
+
 
 ## Evaluation defaults and examples:
 
@@ -222,22 +295,6 @@ DET curve plots:
 - each point corresponds to one score threshold
 - the saved figure is rendered in **probit (normal deviate) scale** on both axes (standard DET view)
 
-## people gator dataset conflicts report
-1. file `people_gator__corresponding_faces__2026-02-11.test.jsonl`:
-- 78 conflicting annotations (more than 1 name per face):
-    - 53 conflicts (completely diffent person)
-    - 25 alias conflits (different name spelling)
-        - 2 aliased names
-- 4453 duplicate rows (same name, same face)
-- after conflict resolution: 1399 unique name face pairs found
-
-2. file `people_gator__corresponding_faces__2026-02-11.dev.jsonl`:
-- 107 conflicting annotations (more than 1 name per face):
-    - 30 conflicts (completely diffent person)
-    - 77 alias conflits (different name spelling)
-        - 7 aliased names
-- 1103 duplicate rows (same name, same face)
-- after conflict resolution: 1999 unique name face pairs found
 ## people gator dataset conflicts report
 1. file `people_gator__corresponding_faces__2026-02-11.test.jsonl`:
 - 78 conflicting annotations (more than 1 name per face):

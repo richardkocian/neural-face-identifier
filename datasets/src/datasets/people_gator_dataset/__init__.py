@@ -1,1 +1,1 @@
-from .people_gator_datataset import PeopleGatorDataset
+from .people_gator_datataset import AugmentedPeopleGatorDataset, PeopleGatorDataset
