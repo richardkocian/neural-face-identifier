@@ -1,7 +1,7 @@
-query_name: Prince Gong
-predicted_gallery_name: Rafael Cordero
-correct_gallery_name: Prince Gong
-top1_cosine_score: 0.999708
-query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Prince Gong/1_01.jpg
-predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Rafael Cordero/0_01.jpg
-correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Prince Gong/0_01.jpg
+query_name: Orazio Antinori
+predicted_gallery_name: Charles Smart Roy
+correct_gallery_name: Orazio Antinori
+top1_cosine_score: 0.510469
+query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Orazio Antinori/1_01.jpg
+predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Charles Smart Roy/0_01.jpg
+correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Orazio Antinori/0_01.jpg

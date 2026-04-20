@@ -1,7 +1,7 @@
-top1_cosine_score: 0.999910
-query_name: Sven Hedin
-predicted_gallery_name: Eugen Titeanu
-correct_gallery_name: Sven Hedin
-query_path: people_gator/people_gator__data/d/c29b97a4-59fe-46de-9166-c9d258a0a0f5.peoplegator_aligned_crops/f0aec9d4-20c1-4d43-b659-2accfb38253c__photograph_0__face_0.jpg
-predicted_gallery_path: people_gator/people_gator__data/d/67e6faf0-195f-483e-9ccf-2e7392d7d69b.peoplegator_aligned_crops/3fef946b-aa73-4d20-893b-66375aeb89ae__image_0__face_0.jpg
-correct_gallery_path: people_gator/people_gator__data/d/4c6b08db-2ee1-4fa1-be11-41f4164cf729.peoplegator_aligned_crops/c45eff78-d7bc-48ea-ae82-f3e3f1c181a7__image_0__face_0.jpg
+top1_cosine_score: 0.579777
+query_name: Bedřich Kolliner
+predicted_gallery_name: Adolf Hitler
+correct_gallery_name: Bedřich Kolliner
+query_path: people_gator/people_gator__data/kvkli/944688a8-de7e-400f-aa86-20e74dbfdad9.peoplegator_aligned_crops/4c20688d-ca98-11e5-a54b-001b21d0d3a4__image_0__face_1.jpg
+predicted_gallery_path: people_gator/people_gator__data/kvkli/01fa9f5f-f60d-4125-9ef4-c5ab46f647b2.peoplegator_aligned_crops/349ddde4-bdcb-11e5-983c-001b21d0d3a4__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/kvkli/4cae2320-55eb-4dd2-a406-41ed3a7b04af.peoplegator_aligned_crops/1373a85d-ca96-11e5-a54b-001b21d0d3a4__photograph_0__face_1.jpg

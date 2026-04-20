@@ -1,7 +1,7 @@
-top1_cosine_score: 0.999979
-query_name: Eugen Titeanu
-predicted_gallery_name: Klement Gottwald
-correct_gallery_name: Eugen Titeanu
-query_path: people_gator/people_gator__data/d/34259854-db70-4f30-958f-adc9007b929c.peoplegator_aligned_crops/fd283cf3-8a38-4c0a-86ee-73d31ae6a1b4__image_0__face_0.jpg
-predicted_gallery_path: people_gator/people_gator__data/svkhk/a2b8fa01-eb54-424f-8000-37e1aa7ac3c5.peoplegator_aligned_crops/4485e9e8-d961-11e5-ae64-00155d010f03__photograph_0__face_0.jpg
-correct_gallery_path: people_gator/people_gator__data/d/ae1fd3cf-84d0-449b-8d79-8decbb28f3ca.peoplegator_aligned_crops/5b40dc4e-c163-420f-be78-470b2895d8ea__image_1__face_0.jpg
+top1_cosine_score: 0.965728
+query_name: Ivan Govorkovich
+predicted_gallery_name: F. S. Thürner
+correct_gallery_name: Ivan Govorkovich
+query_path: people_gator/people_gator__data/d/0899d521-f1e2-471b-9d26-7f96a781d5de.peoplegator_aligned_crops/a1e86bd6-b16c-47dc-8a13-5e86fc7d3fea__image_1__face_0.jpg
+predicted_gallery_path: people_gator/people_gator__data/d/58c1e700-f7bf-4083-9552-68baedc173fc.peoplegator_aligned_crops/b8f0e80c-4057-403e-a79e-e8041c100e43__image_7__face_1.jpg
+correct_gallery_path: people_gator/people_gator__data/d/b3b93249-70a5-459d-bc52-b8c5e784afaa.peoplegator_aligned_crops/327c3720-3db5-4cd1-9ab5-607a15e149a6__image_5__face_1.jpg
