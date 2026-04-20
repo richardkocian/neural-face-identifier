@@ -66,7 +66,8 @@ class PeopleGatorDataset(Dataset):
         if transform is None:
             self.transform = default_transform
         else:
-            self.transform = transforms.Compose([default_transform, transform])
+            # self.transform = transforms.Compose([default_transform, transform])
+            self.transform = transforms.Compose([transform, self.base_transform])
 
     @staticmethod
     def _make_hashable(value):
