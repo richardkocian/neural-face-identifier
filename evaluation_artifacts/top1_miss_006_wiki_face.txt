@@ -1,7 +1,7 @@
-query_name: Salvatore Fratellini
-predicted_gallery_name: Antonio García Cubas
-correct_gallery_name: Salvatore Fratellini
-top1_cosine_score: 0.510023
-query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Salvatore Fratellini/1_01.jpg
-predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Antonio García Cubas/0_01.jpg
-correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Salvatore Fratellini/0_01.jpg
+query_name: Georg von Neumayer
+predicted_gallery_name: Biktoriano Iraola
+correct_gallery_name: Georg von Neumayer
+top1_cosine_score: 0.999688
+query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Georg von Neumayer/1_01.jpg
+predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Biktoriano Iraola/0_01.jpg
+correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Georg von Neumayer/0_01.jpg

@@ -140,8 +140,13 @@ Filtering behavior:
 - default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wiki_face.jpg`
 
 ```bash
-# WikiFace (default)
-uv run --package evaluation run-wikiface
+# WikiFace with pretrained timm model
+uv run --package evaluation run-wikiface \
+  --model-id hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3
+
+# WikiFace with finetuned checkpoint
+uv run --package evaluation run-wikiface \
+  --finetuned-model step_20.pth
 ```
 
 ### People Gator retrieval evaluation

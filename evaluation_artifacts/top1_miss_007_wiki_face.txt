@@ -1,7 +1,7 @@
-query_name: Salomon Jadassohn
-predicted_gallery_name: James Hamilton Ballagh
-correct_gallery_name: Salomon Jadassohn
-top1_cosine_score: 0.503976
-query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Salomon Jadassohn/2_01.jpg
-predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/James Hamilton Ballagh/0_01.jpg
-correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Salomon Jadassohn/0_01.jpg
+query_name: Charles Russell Codman
+predicted_gallery_name: Nikolay Shustov
+correct_gallery_name: Charles Russell Codman
+top1_cosine_score: 0.999655
+query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Charles Russell Codman/1_01.jpg
+predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Nikolay Shustov/0_01.jpg
+correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Charles Russell Codman/0_01.jpg
