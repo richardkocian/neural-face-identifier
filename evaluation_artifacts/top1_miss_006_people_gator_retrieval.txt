@@ -1,7 +1,7 @@
-top1_cosine_score: 0.580981
-query_name: Louis Barthou
-predicted_gallery_name: T. G. Masaryk
-correct_gallery_name: Louis Barthou
-query_path: people_gator/people_gator__data/d/d789551a-e3dd-4b41-9117-d8e3c93c3988.peoplegator_aligned_crops/ce85924d-410c-46a8-aaf2-68a5912b4ced__photograph_0__face_0.jpg
-predicted_gallery_path: people_gator/people_gator__data/kvkli/fe9d5cee-11c8-47db-88c5-3beac195dabf.peoplegator_aligned_crops/596bcaba-b5d7-11e4-a0e9-001b21d0d3a4__photograph_0__face_0.jpg
-correct_gallery_path: people_gator/people_gator__data/kvkli/08719c90-4d87-11dd-9d9a-000d606f5dc6.peoplegator_aligned_crops/dc692870-4d04-11dd-af0c-000d606f5dc6__image_0__face_0.jpg
+top1_cosine_score: 0.999918
+query_name: Otto von Habsburg
+predicted_gallery_name: Bedřich Kolliner
+correct_gallery_name: Otto von Habsburg
+query_path: people_gator/people_gator__data/kvkli/8ba154a0-2ebd-41a0-9e29-2d007f3708a8.peoplegator_aligned_crops/88acc896-4171-414e-9708-32e63ab970f5__photograph_1__face_0.jpg
+predicted_gallery_path: people_gator/people_gator__data/kvkli/20cc7668-e67f-44b7-a7c2-d2f9d84fb588.peoplegator_aligned_crops/5be9475a-ca99-11e5-a54b-001b21d0d3a4__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/kvkli/1f1fde72-d89b-4f3a-a4cb-3f85eaf52a9a.peoplegator_aligned_crops/81513f25-dad6-11e5-b8f4-001b21d0d3a4__photograph_1__face_0.jpg

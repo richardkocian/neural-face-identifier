@@ -11,6 +11,7 @@ import torch
 from datasets.wiki_face_dataset import WikiFaceDataset
 
 from ..core.artifacts import save_top1_misclassified_previews, save_top1_score_boxplot
+from ..core.checkpoints import load_finetuned_state_dict
 from ..core.embeddings import extract_embeddings
 from ..core.metrics import (
     describe_scores,
@@ -123,27 +124,6 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _load_finetuned_state_dict(checkpoint_path: Path) -> dict[str, Any]:
-    checkpoint = torch.load(checkpoint_path, map_location="cpu")
-    if not isinstance(checkpoint, dict):
-        raise ValueError("Finetuned checkpoint must be a dictionary-like .pth file.")
-
-    state_dict = checkpoint.get("model", checkpoint)
-    if not isinstance(state_dict, dict):
-        raise ValueError("Unable to find model state_dict in finetuned checkpoint.")
-
-    if any(str(key).startswith("backbone.") for key in state_dict):
-        backbone_state = {
-            str(key).removeprefix("backbone."): value
-            for key, value in state_dict.items()
-            if str(key).startswith("backbone.")
-        }
-        if not backbone_state:
-            raise ValueError("Checkpoint has no backbone weights to load.")
-        return backbone_state
-    return cast(dict[str, Any], state_dict)
-
-
 def main() -> int:
     args = build_parser().parse_args()
 
@@ -155,7 +135,7 @@ def main() -> int:
     device = torch.device(args.device)
     if args.finetuned_model is not None:
         model = timm.create_model(DEFAULT_TIMM_MODEL_ID, pretrained=False, num_classes=0).to(device)
-        finetuned_state = _load_finetuned_state_dict(args.finetuned_model)
+        finetuned_state = load_finetuned_state_dict(args.finetuned_model)
         load_result = model.load_state_dict(finetuned_state, strict=False)
         unexpected = [
             key for key in load_result.unexpected_keys if key not in {"head.weight", "head.bias"}

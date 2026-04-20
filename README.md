@@ -157,7 +157,15 @@ uv run --package evaluation run-wikiface \
 uv run --package evaluation run-people-gator-embeddings \
   --jsonl-path people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --images-root people_gator/people_gator__data \
+  --model-id hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3 \
   --output-dir .embeddings/vit_small_patch8_gap_112_cosface_ms1mv3
+
+# or use a finetuned checkpoint
+uv run --package evaluation run-people-gator-embeddings \
+  --jsonl-path people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
+  --images-root people_gator/people_gator__data \
+  --finetuned-model step_20.pth \
+  --output-dir .embeddings/step_20
 
 # 1) Update dataset config paths if needed:
 #    evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json

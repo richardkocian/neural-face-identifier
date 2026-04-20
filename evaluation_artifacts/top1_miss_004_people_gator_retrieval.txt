@@ -1,7 +1,7 @@
-top1_cosine_score: 0.752550
-query_name: Jan Amos Komenský
-predicted_gallery_name: Josef Manes
-correct_gallery_name: Jan Amos Komenský
-query_path: people_gator/people_gator__data/npmk/d8b2ea3f-a98c-49f0-92f0-112efd4ea081.peoplegator_aligned_crops/76449836-0534-4a84-a8e9-89ac5395ed6c__image_2__face_0.jpg
-predicted_gallery_path: people_gator/people_gator__data/svkhk/e5acee37-b093-41aa-9656-d7477f8c2730.peoplegator_aligned_crops/92695f89-2dc0-11e8-b30b-00155d012102__image_0__face_0.jpg
-correct_gallery_path: people_gator/people_gator__data/nkp/cbb6d350-2afa-11dd-8761-000d606f5dc6.peoplegator_aligned_crops/222ead99-aaf6-4253-aee3-23d8d4d42e59__image_0__face_0.jpg
+top1_cosine_score: 0.999928
+query_name: Leatrice Joy
+predicted_gallery_name: T. G. Masaryk
+correct_gallery_name: Leatrice Joy
+query_path: people_gator/people_gator__data/nfa/678968b0-7908-11dc-b66c-000d606f5dc6.peoplegator_aligned_crops/b1005700-78dc-11dc-bcc8-000d606f5dc6__image_1__face_0.jpg
+predicted_gallery_path: people_gator/people_gator__data/svkhk/0b64123b-e402-45eb-b2cd-220b0f7072ef.peoplegator_aligned_crops/a469c983-0b1e-11e7-83e3-00155d012102__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/nfa/04a63ce0-7e27-11dc-8b94-000d606f5dc6.peoplegator_aligned_crops/00ee96a0-7e28-11dc-8830-000d606f5dc6__image_1__face_1.jpg

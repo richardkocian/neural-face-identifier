@@ -1,7 +1,7 @@
-top1_cosine_score: 0.959059
-query_name: Ivan Govorkovich
-predicted_gallery_name: F. S. Thürner
-correct_gallery_name: Ivan Govorkovich
-query_path: people_gator/people_gator__data/d/f8c5113c-f12e-4b93-b5f1-74f4379065a5.peoplegator_aligned_crops/cfed5931-f397-4a29-aec4-1199bab3d4ab__image_3__face_2.jpg
-predicted_gallery_path: people_gator/people_gator__data/d/282111df-725c-4e6d-8e7e-0bad68b69a99.peoplegator_aligned_crops/2c653ea9-0d60-485e-a702-3df01ca0bfa5__image_5__face_2.jpg
-correct_gallery_path: people_gator/people_gator__data/d/4816a41d-447e-48b0-bed3-7e7153e00ce0.peoplegator_aligned_crops/617b52b9-19f5-4e49-8b76-5bbb3947f038__image_1__face_1.jpg
+top1_cosine_score: 0.999970
+query_name: Bedřich Kolliner
+predicted_gallery_name: J. V. Stalin
+correct_gallery_name: Bedřich Kolliner
+query_path: people_gator/people_gator__data/kvkli/20cc7668-e67f-44b7-a7c2-d2f9d84fb588.peoplegator_aligned_crops/5be9475a-ca99-11e5-a54b-001b21d0d3a4__photograph_0__face_1.jpg
+predicted_gallery_path: people_gator/people_gator__data/kvkli/871c2e49-44e9-4f40-afc3-60488ecd22f8.peoplegator_aligned_crops/403fbf66-ca97-11e5-a54b-001b21d0d3a4__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/kvkli/4cae2320-55eb-4dd2-a406-41ed3a7b04af.peoplegator_aligned_crops/1373a85d-ca96-11e5-a54b-001b21d0d3a4__photograph_0__face_1.jpg

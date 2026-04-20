@@ -1,7 +1,7 @@
-top1_cosine_score: 0.510682
-query_name: Charlie Chaplin
-predicted_gallery_name: Adolf Hitler
-correct_gallery_name: Charlie Chaplin
-query_path: people_gator/people_gator__data/d/ca714962-0a64-4314-b1b0-3f010c684fdb.peoplegator_aligned_crops/35add4f8-db60-4425-9e95-bd8e511bb42d__image_0__face_1.jpg
-predicted_gallery_path: people_gator/people_gator__data/kvkli/26a0c480-2dbe-11de-ac88-000d606f5dc6.peoplegator_aligned_crops/35214e90-2a02-11de-bcc2-000d606f5dc6__photograph_1__face_1.jpg
-correct_gallery_path: people_gator/people_gator__data/d/ca714962-0a64-4314-b1b0-3f010c684fdb.peoplegator_aligned_crops/35add4f8-db60-4425-9e95-bd8e511bb42d__image_0__face_4.jpg
+top1_cosine_score: 0.999894
+query_name: Vojtěch Hampl
+predicted_gallery_name: Klement Gottwald
+correct_gallery_name: Vojtěch Hampl
+query_path: people_gator/people_gator__data/kvkli/7aeb724b-05e1-437e-adbb-c81b288fc5c2.peoplegator_aligned_crops/9eea087b-ca9a-11e5-a54b-001b21d0d3a4__photograph_0__face_0.jpg
+predicted_gallery_path: people_gator/people_gator__data/kvkli/a490e405-05f2-42be-9e95-c6d269c4e0c0.peoplegator_aligned_crops/0b0ea614-ca97-11e5-a54b-001b21d0d3a4__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/kvkli/1211f132-cfe2-4f95-806a-9e23e934d093.peoplegator_aligned_crops/3128f449-ca9a-11e5-a54b-001b21d0d3a4__photograph_1__face_0.jpg
