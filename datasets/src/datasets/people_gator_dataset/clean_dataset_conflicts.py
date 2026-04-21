@@ -186,9 +186,7 @@ def clean_dataset(
 
     logging.info("Using preferred-name column: %s", preferred_col)
     if global_alias_mode:
-        logging.info(
-            "'rename' column found: global alias mode is per-row."
-        )
+        logging.info("'rename' column found: global alias mode is per-row.")
     else:
         logging.info("'rename' column not found: running in FACE-ONLY CONFLICT mode.")
 

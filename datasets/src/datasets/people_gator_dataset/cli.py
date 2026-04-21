@@ -4,7 +4,8 @@ from pathlib import Path
 
 from .clean_dataset_conflicts import run as run_clean_dataset_conflicts
 from .find_dataset_conflicts import run as run_find_dataset_conflicts
-
+from .generate_augmentations import run as run_generate_augmentations
+from .split_dataset import run as run_split_dataset
 
 SCRIPT_DEFAULT_FIELDS: dict[str, tuple[str, ...]] = {
     "find-conflicts": ("output_csv",),
@@ -124,6 +125,73 @@ def parse_args() -> argparse.Namespace:
         help="Path to cleanup log file (default: {input-stem}_clean_log.log).",
     )
 
+    # ----------------------------#
+    #        split dataset        #
+    # ----------------------------#
+    split_parser = subparsers.add_parser(
+        "split-dataset",
+        help="Split PeopleGator JSONL into two identity-based subsets.",
+        parents=[shared_subparser_args],
+    )
+
+    split_parser.add_argument(
+        "--seed",
+        type=int,
+        default=1,
+        help="Random seed used for deterministic identity shuffling (default: 1).",
+    )
+
+    split_parser.add_argument(
+        "--splits",
+        type=float,
+        default=0.8,
+        help="Fraction in range [0, 1] used for the first split (default: 0.8).",
+    )
+
+    split_parser.add_argument(
+        "--split-names",
+        type=str,
+        nargs=2,
+        default=["train", "test"],
+        help=(
+            "Two suffix names for output files in order. "
+            "Defaults to 'train test', producicing "
+            "{input-stem}_train.* and {input-stem}_test.* in the input directory."
+        ),
+    )
+
+    # ----------------------------#
+    #   generate augmentations    #
+    # ----------------------------#
+    augment_parser = subparsers.add_parser(
+        "generate-augmentations",
+        help="Create augmented images and per-augmentation JSONL metadata.",
+        parents=[shared_subparser_args],
+    )
+    augment_parser.add_argument(
+        "--images-root",
+        type=Path,
+        required=True,
+        help="Root directory containing images referenced by --input-jsonl.",
+    )
+    augment_parser.add_argument(
+        "--destination-root",
+        type=Path,
+        required=True,
+        help="Directory where augmented images and JSONL files will be generated.",
+    )
+    augment_parser.add_argument(
+        "--augmentations",
+        nargs="+",
+        default=["all"],
+        choices=["all", "none", "crop", "low-res", "photo"],
+        help=(
+            "Augmentations to run. Use one or more of: crop, low-res, photo; "
+            "or use all / none (default: all)."
+        ),
+    )
+
+    # dynamic default vales handeling
     args = parser.parse_args()
     defaults = _derive_default_paths(args.input_jsonl)
     _apply_script_defaults(args, defaults)
@@ -147,6 +215,10 @@ def get_script_from_args(args: argparse.Namespace):
         return run_find_dataset_conflicts
     if args.script_name == "clean-from-conflicts":
         return run_clean_dataset_conflicts
+    if args.script_name == "split-dataset":
+        return run_split_dataset
+    if args.script_name == "generate-augmentations":
+        return run_generate_augmentations
     raise ValueError(f"Unknown script_name: {args.script_name}")
 
 
