@@ -1,10 +1,11 @@
 from pathlib import Path
-
 import pandas as pd
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
+
+from .augmenter import AugmentationType
 
 
 class PeopleGatorDataset(Dataset):
@@ -14,10 +15,7 @@ class PeopleGatorDataset(Dataset):
         self,
         jsonl_path: Path,
         images_root: Path,
-        image_col: str = "face",
-        label_col: str = "person_name",
         transform=None,
-        deduplicate_rows: bool = True,
     ):
         """
         Parameters
@@ -26,31 +24,17 @@ class PeopleGatorDataset(Dataset):
             Path to JSONL metadata file.
         images_root : Path
             Root directory where image files are stored.
-        image_col : str, optional
-            Column with relative image paths, by default "face".
-        label_col : str, optional
-            Column with identity labels, by default "person_name".
         transform : callable, optional
             Additional transform applied on top of default preprocessing.
             Default preprocessing is resize to 112x112, tensor conversion,
             and normalization.
-        deduplicate_rows : bool, optional
-            Whether to remove exact duplicate metadata rows.
         """
         self.jsonl_path = Path(jsonl_path).resolve()
         self.images_root = Path(images_root).resolve()
-        self.image_col = image_col
-        self.label_col = label_col
+        self.image_col = "face"
+        self.label_col = "person_name"
 
         self.df = pd.read_json(self.jsonl_path, lines=True)
-        if deduplicate_rows:
-            normalized_df = self.df.apply(lambda col: col.map(self._make_hashable))
-            self.df = self.df.loc[~normalized_df.duplicated()].reset_index(drop=True)
-
-        if self.image_col not in self.df.columns:
-            raise ValueError(f"Missing required image column: {self.image_col}")
-        if self.label_col not in self.df.columns:
-            raise ValueError(f"Missing required label column: {self.label_col}")
 
         classes = sorted(self.df[self.label_col].dropna().unique().tolist())
         self.class_to_idx = {name: idx for idx, name in enumerate(classes)}
@@ -68,20 +52,6 @@ class PeopleGatorDataset(Dataset):
         else:
             # self.transform = transforms.Compose([default_transform, transform])
             self.transform = transforms.Compose([transform, self.base_transform])
-
-    @staticmethod
-    def _make_hashable(value):
-        """Convert nested list/dict values into hashable equivalents."""
-        if isinstance(value, list):
-            return tuple(PeopleGatorDataset._make_hashable(item) for item in value)
-        if isinstance(value, dict):
-            return tuple(
-                sorted(
-                    (key, PeopleGatorDataset._make_hashable(item))
-                    for key, item in value.items()
-                )
-            )
-        return value
 
     def __len__(self):
         return len(self.df)
@@ -102,3 +72,67 @@ class PeopleGatorDataset(Dataset):
         label = torch.tensor(label_idx, dtype=torch.long)
 
         return image, label
+
+
+class AugmentedPeopleGatorDataset(PeopleGatorDataset):
+    """PeopleGator dataset with optional augmentation-based filtering."""
+    
+    def __init__(
+        self,
+        jsonl_path: Path,
+        images_root: Path,
+        transform=None,
+        augmentation_filter: AugmentationType | None = None,
+    ):
+        super().__init__(jsonl_path=jsonl_path, images_root=images_root, transform=transform)
+        self.augmentation_filter = augmentation_filter
+
+        self._validate_augmentation_values()
+        self._apply_augmentation_filter()
+        self._rebuild_class_mappings()
+
+    def _validate_augmentation_values(self) -> None:
+        """Ensure augmentation column only contains values from AugmentationType."""
+        if "augmentation" not in self.df.columns:
+            return
+
+        allowed_values = {augmentation.value for augmentation in AugmentationType}
+        present_values = {
+            value.strip().lower()
+            for value in self.df["augmentation"].dropna().astype("string")
+            if value.strip() != ""
+        }
+        invalid_values = sorted(value for value in present_values if value not in allowed_values)
+        if invalid_values:
+            raise ValueError(
+                "Invalid values in 'augmentation' column: "
+                f"{invalid_values}. Allowed values: {sorted(allowed_values)}"
+            )
+
+    def _apply_augmentation_filter(self) -> None:
+        """Filter dataset by augmentation value when requested and column exists."""
+        if self.augmentation_filter is None:
+            return
+
+        if "augmentation" not in self.df.columns:
+            # If column is absent, treat every row as implicit 'none'.
+            if self.augmentation_filter == AugmentationType.NoAug:
+                return
+            self.df = self.df.iloc[0:0].copy()
+            return
+
+        normalized_filter = self.augmentation_filter.value.strip().lower()
+        matches = (
+            self.df["augmentation"]
+            .astype("string")
+            .fillna(AugmentationType.NoAug.value)
+            .str.strip()
+            .str.lower()
+            .eq(normalized_filter)
+        )
+        self.df = self.df[matches].reset_index(drop=True)
+
+    def _rebuild_class_mappings(self) -> None:
+        classes = sorted(self.df[self.label_col].dropna().unique().tolist())
+        self.class_to_idx = {name: idx for idx, name in enumerate(classes)}
+        self.idx_to_class = {idx: name for name, idx in self.class_to_idx.items()}
