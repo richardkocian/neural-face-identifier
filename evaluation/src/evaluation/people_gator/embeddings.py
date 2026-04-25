@@ -102,9 +102,6 @@ def main() -> int:
     dataset = PeopleGatorDataset(
         jsonl_path=args.jsonl_path,
         images_root=args.images_root,
-        image_col=args.image_col,
-        label_col=args.label_col,
-        deduplicate_rows=not args.no_deduplicate_rows,
     )
     if len(dataset) == 0:
         raise ValueError("PeopleGatorDataset is empty, cannot generate embeddings.")
@@ -137,7 +134,7 @@ def main() -> int:
     )
 
     sampled_df = dataset.df.iloc[sample_indices]
-    image_paths = sampled_df[args.image_col].astype(str).tolist()
+    image_paths = sampled_df[dataset.image_col].astype(str).tolist()
 
     embeddings_path = output_dir / "embeddings.npy"
     image_paths_path = output_dir / "image_paths.txt"
