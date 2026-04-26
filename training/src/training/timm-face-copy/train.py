@@ -106,6 +106,10 @@ def get_parser():
 
     parser.add_argument("--run_name", default="debug")
     parser.add_argument("--resume")
+    
+    # wandb arguments
+    parser.add_argument("--wandb_api_key", type=str, default=None, help="Weights & Biases API key")
+    parser.add_argument("--wandb_disabled", action="store_true", help="Disable Weights & Biases logging")
     return parser
 
 
@@ -141,8 +145,14 @@ if __name__ == "__main__":
         assert not CKPT_DIR.exists()
         CKPT_DIR.mkdir(parents=True, exist_ok=True)
 
-        Path("wandb_logs").mkdir(exist_ok=True)
-        wandb.init(project="Timm Face", name=args.run_name, config=args, dir="wandb_logs")
+        # Configure wandb
+        if not args.wandb_disabled:
+            if args.wandb_api_key:
+                wandb.login(key=args.wandb_api_key, relogin=False)
+            Path("wandb_logs").mkdir(exist_ok=True)
+            wandb.init(project="Timm Face", name=args.run_name, config=args, dir="wandb_logs")
+        else:
+            wandb.init(mode="disabled")
 
     assert batch_size % args.grad_accum == 0
 
