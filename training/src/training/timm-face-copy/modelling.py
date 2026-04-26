@@ -21,7 +21,8 @@ class TimmFace(nn.Module):
     ) -> None:
         super().__init__()
         EMBED_DIM = 512
-        self.backbone = timm.create_model(backbone, num_classes=EMBED_DIM, **(backbone_kwargs or dict()))
+        # self.backbone = timm.create_model(backbone, num_classes=EMBED_DIM, **(backbone_kwargs or dict()))
+        self.backbone = timm.create_model(backbone, pretrained=True)#, **(backbone_kwargs or dict()))
 
         if reduce_first_conv_stride:
             first_conv = self.backbone
