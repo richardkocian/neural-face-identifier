@@ -24,6 +24,7 @@ run-people-gator-retrieval-det = "evaluation.cli.people_gator:main_retrieval_det
 run-people-gator-retrieval-boxplot = "evaluation.cli.people_gator:main_retrieval_boxplot"
 run-people-gator-retrieval-gt = "evaluation.cli.people_gator:main_retrieval_gt"
 run-people-gator-retrieval-checkpoints = "evaluation.cli.people_gator:main_retrieval_checkpoints"
+run-people-gator-retrieval-metrics-summary-pdf = "evaluation.cli.people_gator:main_retrieval_metrics_summary_pdf"
 
 [tool.uv]
 package = true
