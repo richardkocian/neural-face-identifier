@@ -50,7 +50,8 @@ class PeopleGatorDataset(Dataset):
         if transform is None:
             self.transform = default_transform
         else:
-            self.transform = transforms.Compose([default_transform, transform])
+            # self.transform = transforms.Compose([default_transform, transform])
+            self.transform = transforms.Compose([transform, self.base_transform])
 
     def __len__(self):
         return len(self.df)
