@@ -110,6 +110,9 @@ def get_parser():
     # wandb arguments
     parser.add_argument("--wandb_api_key", type=str, default=None, help="Weights & Biases API key")
     parser.add_argument("--wandb_disabled", action="store_true", help="Disable Weights & Biases logging")
+    
+    # how many steps will the backone be frozen
+    parser.add_argument("--freeze_steps", type=int, default=0, help="Number of steps to freeze the backbone")
     return parser
 
 
@@ -219,6 +222,7 @@ if __name__ == "__main__":
         loss_kwargs=args.loss_kwargs,
         reduce_first_conv_stride=args.reduce_first_conv_stride,
         partial_fc=args.partial_fc,
+        pretrained=True,
     ).to("cuda")
     if args.channels_last:
         model.to(memory_format=torch.channels_last)
@@ -232,6 +236,13 @@ if __name__ == "__main__":
 
         if args.optim == "LAMB" and args.clip_grad_norm is not None:
             print("LAMB already has clip_grad_norm. Make sure this is intended.")
+
+    # freeze
+    if args.freeze_steps > 0:
+        if is_rank0:
+            print(f"Freezing backbone for the first {args.freeze_steps} steps.")
+        for param in model.backbone.parameters():
+            param.requires_grad = False
 
     optim_dict = dict(
         SGD=torch.optim.SGD,
@@ -272,6 +283,26 @@ if __name__ == "__main__":
     model.train()
 
     while step < args.total_steps:
+        # --- UNFREEZE LOGIC ---
+        if args.freeze_steps > 0 and step == args.freeze_steps:
+            if is_rank0:
+                print(f"Step {step}: Unfreezing backbone and resetting optimizer.")
+            
+            # Odemknout parametry
+            # Pokud máte model v DDP, přistupujte k němu přes .module
+            m = model.module if is_ddp else model
+            for param in m.backbone.parameters():
+                param.requires_grad = True
+            
+            # DŮLEŽITÉ: Musíte znovu vytvořit optimizér, aby věděl o nových parametrech
+            optim = optim_dict[args.optim](
+                model.parameters(),
+                lr=lr_schedule.get_lr(step),
+                weight_decay=args.weight_decay,
+                **(args.optim_kwargs or dict()),
+            )
+        # -----------------------
+        
         lr = lr_schedule.get_lr(step)
         for param_group in optim.param_groups:
             param_group["lr"] = lr
