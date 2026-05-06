@@ -215,3 +215,5 @@ wiki_face_112_fin.zip
 
 .embeddings
 evaluation_artifacts/retrieval.union.tst.pkl
+
+*.pth
