@@ -21,6 +21,7 @@ uv run --package evaluation run-people-gator-retrieval-evaluate --help
 uv run --package evaluation run-people-gator-retrieval-det --help
 uv run --package evaluation run-people-gator-retrieval-boxplot --help
 uv run --package evaluation run-people-gator-retrieval-gt --help
+uv run --package evaluation run-people-gator-retrieval-checkpoints --help
 uv run --package training run-training
 ```
 
@@ -140,8 +141,13 @@ Filtering behavior:
 - default Top-1 miss previews: up to 10 files named `top1_miss_XXX_wiki_face.jpg`
 
 ```bash
-# WikiFace (default)
-uv run --package evaluation run-wikiface
+# WikiFace with pretrained timm model
+uv run --package evaluation run-wikiface \
+  --model-id hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3
+
+# WikiFace with finetuned checkpoint
+uv run --package evaluation run-wikiface \
+  --finetuned-model step_20.pth
 ```
 
 ### People Gator retrieval evaluation
@@ -152,7 +158,15 @@ uv run --package evaluation run-wikiface
 uv run --package evaluation run-people-gator-embeddings \
   --jsonl-path people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --images-root people_gator/people_gator__data \
+  --model-id hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3 \
   --output-dir .embeddings/vit_small_patch8_gap_112_cosface_ms1mv3
+
+# or use a finetuned checkpoint
+uv run --package evaluation run-people-gator-embeddings \
+  --jsonl-path people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
+  --images-root people_gator/people_gator__data \
+  --finetuned-model step_20.pth \
+  --output-dir .embeddings/step_20
 
 # 1) Update dataset config paths if needed:
 #    evaluation/src/peoplegator_namedfaces/retrieval/configs/dataset.template.json
@@ -209,6 +223,19 @@ uv run --package evaluation run-people-gator-retrieval-boxplot \
   --annotations-jsonl people_gator/people_gator__corresponding_faces__2026-02-11.test.cleaned.jsonl \
   --ignore-index -1 \
   --output-image evaluation_artifacts/retrieval.union.tst.top1_cosine_boxplot.png
+
+# Run the full retrieval pipeline for all .pth checkpoints under a checkpoints root:
+# 1) embeddings
+# 2) retrieval
+# 3) metrics CSV
+# 4) bootstrap metrics CSV
+# 5) DET (png+csv)
+# 6) boxplot
+# Uses one shared ground truth file and creates per-checkpoint dataset config JSONs.
+# Checkpoint outputs are saved to <checkpoint_dir>/evaluation_artifacts and
+# named with prefix <folder>_<checkpoint_stem>.
+uv run --package evaluation run-people-gator-retrieval-checkpoints \
+  --checkpoints-root ../checkpoints
 ```
 
 `run-people-gator-retrieval-evaluate` loads prediction scores for each query, compares them against ground-truth relevant faces, and writes retrieval metrics (`precision`, `recall`, `f1`, `hitrate`, `map`, `mrr`, `ndcg`, `rprecision`, `auroc`) per `top-k` into CSV.

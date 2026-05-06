@@ -11,6 +11,7 @@ import torch
 from datasets.wiki_face_dataset import WikiFaceDataset
 
 from ..core.artifacts import save_top1_misclassified_previews, save_top1_score_boxplot
+from ..core.checkpoints import load_finetuned_state_dict
 from ..core.embeddings import extract_embeddings
 from ..core.metrics import (
     describe_scores,
@@ -18,6 +19,8 @@ from ..core.metrics import (
     gallery_query_topk_with_pair_labels_scores,
 )
 from ..people_gator.retrieval.det_curve import compute_det, save_det_csv, save_det_plot
+
+DEFAULT_TIMM_MODEL_ID = "hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3"
 
 
 def _default_paths() -> dict[str, Path]:
@@ -43,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Evaluate WikiFace embeddings with gallery/query Top-1/Top-5 metrics and save Top-1 boxplot + DET curve."
         )
     )
+    model_group = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument(
         "--csv-path",
         type=Path,
@@ -55,11 +59,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=defaults["wiki_face_images"],
         help="Root directory containing WikiFace images.",
     )
-    parser.add_argument(
+    model_group.add_argument(
         "--model-id",
         type=str,
-        default="hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3",
-        help="timm model identifier.",
+        default=None,
+        help="timm model identifier for pretrained evaluation.",
+    )
+    model_group.add_argument(
+        "--finetuned-model",
+        type=Path,
+        default=None,
+        help="Path to a finetuned .pth checkpoint (for example step_20.pth).",
     )
     parser.add_argument("--batch-size", type=int, default=64, help="Inference batch size.")
     parser.add_argument("--num-workers", type=int, default=0, help="DataLoader workers.")
@@ -123,7 +133,23 @@ def main() -> int:
         return 1
 
     device = torch.device(args.device)
-    model = timm.create_model(args.model_id, pretrained=True, num_classes=0).to(device)
+    if args.finetuned_model is not None:
+        model = timm.create_model(DEFAULT_TIMM_MODEL_ID, pretrained=False, num_classes=0).to(device)
+        finetuned_state = load_finetuned_state_dict(args.finetuned_model)
+        load_result = model.load_state_dict(finetuned_state, strict=False)
+        unexpected = [
+            key for key in load_result.unexpected_keys if key not in {"head.weight", "head.bias"}
+        ]
+        if load_result.missing_keys or unexpected:
+            raise ValueError(
+                "Failed to load finetuned checkpoint. "
+                f"Missing keys: {load_result.missing_keys}. Unexpected keys: {unexpected}."
+            )
+        model_source = f"finetuned checkpoint: {args.finetuned_model.resolve()}"
+    else:
+        assert args.model_id is not None
+        model = timm.create_model(args.model_id, pretrained=True, num_classes=0).to(device)
+        model_source = f"pretrained model-id: {args.model_id}"
     model.eval()
 
     embeddings, labels, sample_indices = extract_embeddings(
@@ -189,7 +215,7 @@ def main() -> int:
     print(f"Samples used: {embeddings.shape[0]}")
     print(f"Classes in samples: {labels.unique().numel()}")
     print(f"Device: {device}")
-    print(f"Model: {args.model_id}")
+    print(f"Model: {model_source}")
     print(f"Top-1 (gallery/query): {metrics[1] * 100:.2f}%")
     print(f"Top-5 (gallery/query): {metrics[5] * 100:.2f}%")
     print(
