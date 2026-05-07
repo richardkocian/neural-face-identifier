@@ -816,6 +816,16 @@ wheels = [
 name = "neural-face-identifier"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "scikit-learn" },
+    { name = "wandb" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "scikit-learn", specifier = ">=1.8.0" },
+    { name = "wandb", specifier = ">=0.26.1" },
+]
 
 [[package]]
 name = "numpy"
