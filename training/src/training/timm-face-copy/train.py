@@ -222,7 +222,6 @@ if __name__ == "__main__":
         loss_kwargs=args.loss_kwargs,
         reduce_first_conv_stride=args.reduce_first_conv_stride,
         partial_fc=args.partial_fc,
-        pretrained=True,
     ).to("cuda")
     if args.channels_last:
         model.to(memory_format=torch.channels_last)
