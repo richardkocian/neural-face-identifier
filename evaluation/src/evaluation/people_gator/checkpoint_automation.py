@@ -224,6 +224,7 @@ def _process_checkpoint(
 
     print(f"\n=== Processing checkpoint: {checkpoint_path} ===")
 
+    try:
     embeddings_file = embeddings_dir / "embeddings.npy"
     image_paths_file = embeddings_dir / "image_paths.txt"
 
@@ -247,7 +248,9 @@ def _process_checkpoint(
                 str(embeddings_dir.resolve()),
             ]
         )
-
+    except Exception as e:
+        print(f"Error during embedding generation for checkpoint {checkpoint_path}: {e}")
+        return
     _write_dataset_config(template=template, output_path=dataset_cfg, embeddings_dir=embeddings_dir)
 
     _run_command(
