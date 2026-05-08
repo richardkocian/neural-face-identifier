@@ -254,6 +254,7 @@ def main() -> int:
                 baseline,
                 output_dir / closeup_name,
                 ylim=ylim,
+                xlim_max=4000,
                 title_suffix=" (closeup)",
             )
 
@@ -271,6 +272,7 @@ def _plot_metric_series(
     baseline: float | None,
     output_path: Path,
     ylim: tuple[float, float] | None = None,
+    xlim_max: float | None = None,
     title_suffix: str = "",
 ) -> None:
     fig, ax = plt.subplots(figsize=(11, 6))
@@ -318,6 +320,8 @@ def _plot_metric_series(
         new_min = ylim[0] if ylim[0] is not None else cur_min
         new_max = ylim[1] if ylim[1] is not None else cur_max
         ax.set_ylim(new_min, new_max)
+    if xlim_max:
+        ax.set_xlim(None, xlim_max)
     ax.grid(True, alpha=0.3)
     ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0))
     # fig.tight_layout()

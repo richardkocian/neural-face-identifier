@@ -88,6 +88,7 @@ def _plot_metric_series(
     top_k: int,
     config_map: dict[str, list[tuple[int, float]]],
     output_path: Path,
+    xlim_max: float | None = None,
 ) -> None:
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel("Training Step")
@@ -109,6 +110,8 @@ def _plot_metric_series(
             markersize=4,
         )
 
+    if xlim_max:
+        ax.set_xlim(None, xlim_max)
     ax.grid(True, alpha=0.3)
     ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
     # fig.tight_layout()
@@ -250,8 +253,19 @@ def main() -> int:
 
     # Plot accuracies
     for (metric_name, top_k), config_map in sorted(series.items()):
+        # 1. Standard Plot
         out_name = f"wikiface_{_sanitize_for_filename(metric_name)}_topk_{top_k}.pdf"
         _plot_metric_series(metric_name, top_k, config_map, output_dir / out_name)
+
+        # 2. Closeup Plot (limited to 4000 steps)
+        closeup_name = f"wikiface_{_sanitize_for_filename(metric_name)}_topk_{top_k}_closeup.pdf"
+        _plot_metric_series(
+            metric_name,
+            top_k,
+            config_map,
+            output_dir / closeup_name,
+            xlim_max=4000,
+        )
 
     # Plot DET curves
     if det_series:
