@@ -75,8 +75,8 @@ def _process_checkpoint(
 
     print(f"\n=== Processing checkpoint: {checkpoint_path} ===")
 
-    # Skip if outputs already exist
-    if metrics_csv.exists() and det_csv.exists():
+    # Skip only if all artifacts exist
+    if metrics_csv.exists() and det_csv.exists() and det_png.exists() and boxplot_png.exists():
         print(f"WikiFace evaluation for this model exist, skipping. Proceeding to next step.")
     else:
         _run_command(
