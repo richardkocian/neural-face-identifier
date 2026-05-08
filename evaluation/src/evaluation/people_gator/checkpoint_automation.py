@@ -251,120 +251,136 @@ def _process_checkpoint(
     except Exception as e:
         print(f"Error during embedding generation for checkpoint {checkpoint_path}: {e}")
         return
-    _write_dataset_config(template=template, output_path=dataset_cfg, embeddings_dir=embeddings_dir)
+    if not dataset_cfg.exists():
+        _write_dataset_config(template=template, output_path=dataset_cfg, embeddings_dir=embeddings_dir)
 
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-retrieval",
-            "--dataset",
-            str(dataset_cfg.resolve()),
-            "--queries",
-            str(args.queries.resolve()),
-            "--engine",
-            str(args.engine.resolve()),
-            "--output",
-            str(predictions.resolve()),
-        ]
-    )
+    if predictions.exists():
+        print(f"Predictions for this model exist, skipping retrieval. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-retrieval",
+                "--dataset",
+                str(dataset_cfg.resolve()),
+                "--queries",
+                str(args.queries.resolve()),
+                "--engine",
+                str(args.engine.resolve()),
+                "--output",
+                str(predictions.resolve()),
+            ]
+        )
 
     top_k_args = [str(x) for x in args.top_k]
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-retrieval-evaluate",
-            "--predictions",
-            str(predictions.resolve()),
-            "--ground-truth",
-            str(shared_gt),
-            "--dataset",
-            str(dataset_cfg.resolve()),
-            "--top-k",
-            *top_k_args,
-            "--ignore-index",
-            str(args.ignore_index),
-            "--output-file",
-            str(metrics_csv.resolve()),
-        ]
-    )
+    if metrics_csv.exists():
+        print(f"Metrics CSV for this model exist, skipping evaluation. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-retrieval-evaluate",
+                "--predictions",
+                str(predictions.resolve()),
+                "--ground-truth",
+                str(shared_gt),
+                "--dataset",
+                str(dataset_cfg.resolve()),
+                "--top-k",
+                *top_k_args,
+                "--ignore-index",
+                str(args.ignore_index),
+                "--output-file",
+                str(metrics_csv.resolve()),
+            ]
+        )
 
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-retrieval-evaluate",
-            "--predictions",
-            str(predictions.resolve()),
-            "--ground-truth",
-            str(shared_gt),
-            "--dataset",
-            str(dataset_cfg.resolve()),
-            "--top-k",
-            *top_k_args,
-            "--ignore-index",
-            str(args.ignore_index),
-            "--bootstrap-iters",
-            str(args.bootstrap_iters),
-            "--output-file",
-            str(bootstrap_csv.resolve()),
-        ]
-    )
+    if bootstrap_csv.exists():
+        print(f"Bootstrap CSV for this model exist, skipping bootstrap evaluation. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-retrieval-evaluate",
+                "--predictions",
+                str(predictions.resolve()),
+                "--ground-truth",
+                str(shared_gt),
+                "--dataset",
+                str(dataset_cfg.resolve()),
+                "--top-k",
+                *top_k_args,
+                "--ignore-index",
+                str(args.ignore_index),
+                "--bootstrap-iters",
+                str(args.bootstrap_iters),
+                "--output-file",
+                str(bootstrap_csv.resolve()),
+            ]
+        )
 
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-retrieval-det",
-            "--predictions",
-            str(predictions.resolve()),
-            "--ground-truth",
-            str(shared_gt),
-            "--dataset",
-            str(dataset_cfg.resolve()),
-            "--ignore-index",
-            str(args.ignore_index),
-            "--output-image",
-            str(det_png.resolve()),
-            "--output-csv",
-            str(det_csv.resolve()),
-        ]
-    )
+    if det_png.exists() and det_csv.exists():
+        print(f"DET plot and CSV for this model exist, skipping. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-retrieval-det",
+                "--predictions",
+                str(predictions.resolve()),
+                "--ground-truth",
+                str(shared_gt),
+                "--dataset",
+                str(dataset_cfg.resolve()),
+                "--ignore-index",
+                str(args.ignore_index),
+                "--output-image",
+                str(det_png.resolve()),
+                "--output-csv",
+                str(det_csv.resolve()),
+            ]
+        )
 
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-retrieval-boxplot",
-            "--predictions",
-            str(predictions.resolve()),
-            "--ground-truth",
-            str(shared_gt),
-            "--dataset",
-            str(dataset_cfg.resolve()),
-            "--images-root",
-            str(args.images_root.resolve()),
-            "--annotations-jsonl",
-            str(args.annotations.resolve()),
-            "--ignore-index",
-            str(args.ignore_index),
-            "--output-image",
-            str(boxplot_png.resolve()),
-            "--show-misclassified-top1",
-            "0",
-        ]
-    )
+    if boxplot_png.exists():
+        print(f"Boxplot for this model exist, skipping. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-retrieval-boxplot",
+                "--predictions",
+                str(predictions.resolve()),
+                "--ground-truth",
+                str(shared_gt),
+                "--dataset",
+                str(dataset_cfg.resolve()),
+                "--images-root",
+                str(args.images_root.resolve()),
+                "--annotations-jsonl",
+                str(args.annotations.resolve()),
+                "--ignore-index",
+                str(args.ignore_index),
+                "--output-image",
+                str(boxplot_png.resolve()),
+                "--show-misclassified-top1",
+                "0",
+            ]
+        )
 
 
 def main() -> int:
