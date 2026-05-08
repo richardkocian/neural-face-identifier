@@ -26,7 +26,7 @@ DEFAULT_TIMM_MODEL_ID = "hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv
 def _default_paths() -> dict[str, Path]:
     repo_root = Path(__file__).resolve().parents[4]
     return {
-        "wiki_face_csv": repo_root / "wiki_face_112_fin" / "wiki_face_112_fin.test.csv",
+        "wiki_face_csv": repo_root / "wiki_face_112_fin" / "wiki_face_112_fin.csv",
         "wiki_face_images": repo_root / "wiki_face_112_fin",
     }
 
