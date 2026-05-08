@@ -110,6 +110,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Bootstrap iterations for retrieval-evaluate bootstrap CSV.",
     )
     parser.add_argument(
+        "--summary-output-dir",
+        type=Path,
+        default=root / "summary-graphs",
+        help="Output directory for generated PDF summary charts (default: root/summary-graphs).",
+    )
+    parser.add_argument(
         "--force-regenerate-shared-ground-truth",
         action="store_true",
         help="Regenerate shared ground-truth JSONL even if an existing file is present.",
@@ -384,6 +390,23 @@ def main() -> int:
         )
 
     print("\nAll checkpoints processed successfully.")
+
+    # Generate summary metrics report
+    print("\n=== Generating Summary Metrics Report ===")
+    args.summary_output_dir.mkdir(parents=True, exist_ok=True)
+    _run_command(
+        [
+            "uv",
+            "run",
+            "--package",
+            "evaluation",
+            "run-people-gator-retrieval-metrics-summary-pdf",
+            str(checkpoints_root),
+            "--output-dir",
+            str(args.summary_output_dir.resolve()),
+        ]
+    )
+
     return 0
 
 
