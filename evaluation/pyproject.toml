@@ -17,6 +17,8 @@ dependencies = [
 
 [project.scripts]
 run-wikiface = "evaluation.cli.wikiface:main"
+run-wikiface-retrieval-checkpoints = "evaluation.cli.wikiface:main_retrieval_checkpoints"
+run-wikiface-metrics-summary-pdf = "evaluation.cli.wikiface:main_retrieval_metrics_summary_pdf"
 run-people-gator-retrieval = "peoplegator_namedfaces.retrieval.run:main"
 run-people-gator-retrieval-evaluate = "peoplegator_namedfaces.retrieval.evaluate:main"
 run-people-gator-embeddings = "evaluation.cli.people_gator:main_embeddings"

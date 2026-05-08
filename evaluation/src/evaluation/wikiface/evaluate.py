@@ -116,6 +116,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Where to save DET CSV with threshold,FPR,FNR.",
     )
     parser.add_argument(
+        "--metrics-csv-path",
+        type=Path,
+        default=Path("evaluation_artifacts") / "wikiface.metrics.csv",
+        help="Where to save metrics CSV with Top-1/Top-5 accuracy.",
+    )
+    parser.add_argument(
         "--det-title",
         type=str,
         default="DET curve - WikiFace",
@@ -161,7 +167,7 @@ def main() -> int:
         max_samples=args.max_samples,
     )
     metrics, misclassified, correct_scores, wrong_scores, y_true_t, y_score_t = (
-        gallery_query_topk_with_pair_labels_scores(embeddings, labels, ks=(1, 5))
+        gallery_query_topk_with_pair_labels_scores(embeddings, labels, ks=(1, 5, 10))
     )
 
     boxplot_path = save_top1_score_boxplot(
@@ -209,6 +215,15 @@ def main() -> int:
         eer=det_eer,
     )
 
+    # Save metrics CSV
+    metrics_csv_path = args.metrics_csv_path.resolve()
+    metrics_csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with metrics_csv_path.open("w", encoding="utf-8") as f:
+        f.write("top_k,accuracy\n")
+        f.write(f"1,{metrics[1]}\n")
+        f.write(f"5,{metrics[5]}\n")
+        f.write(f"10,{metrics[10]}\n")
+
     print("WikiFace evaluation finished.")
     print(f"CSV: {args.csv_path.resolve()}")
     print(f"Images root: {args.images_root.resolve()}")
@@ -218,6 +233,7 @@ def main() -> int:
     print(f"Model: {model_source}")
     print(f"Top-1 (gallery/query): {metrics[1] * 100:.2f}%")
     print(f"Top-5 (gallery/query): {metrics[5] * 100:.2f}%")
+    print(f"Top-10 (gallery/query): {metrics[10] * 100:.2f}%")
     print(
         "Top-1 cosine (correct) -> "
         f"count: {correct_n}, mean: {correct_mean:.4f}, median: {correct_median:.4f}"
