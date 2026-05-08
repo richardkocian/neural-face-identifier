@@ -110,6 +110,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Bootstrap iterations for retrieval-evaluate bootstrap CSV.",
     )
     parser.add_argument(
+        "--summary-output-dir",
+        type=Path,
+        default=root / "summary-graphs",
+        help="Output directory for generated PDF summary charts (default: root/summary-graphs).",
+    )
+    parser.add_argument(
         "--force-regenerate-shared-ground-truth",
         action="store_true",
         help="Regenerate shared ground-truth JSONL even if an existing file is present.",
@@ -218,23 +224,29 @@ def _process_checkpoint(
 
     print(f"\n=== Processing checkpoint: {checkpoint_path} ===")
 
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-embeddings",
-            "--jsonl-path",
-            str(args.jsonl_path.resolve()),
-            "--images-root",
-            str(args.images_root.resolve()),
-            "--finetuned-model",
-            str(checkpoint_path.resolve()),
-            "--output-dir",
-            str(embeddings_dir.resolve()),
-        ]
-    )
+    embeddings_file = embeddings_dir / "embeddings.npy"
+    image_paths_file = embeddings_dir / "image_paths.txt"
+
+    if embeddings_file.exists() and image_paths_file.exists():
+        print(f"Embeddings for this model exist, skipping with embeddings generation. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-embeddings",
+                "--jsonl-path",
+                str(args.jsonl_path.resolve()),
+                "--images-root",
+                str(args.images_root.resolve()),
+                "--finetuned-model",
+                str(checkpoint_path.resolve()),
+                "--output-dir",
+                str(embeddings_dir.resolve()),
+            ]
+        )
 
     _write_dataset_config(template=template, output_path=dataset_cfg, embeddings_dir=embeddings_dir)
 
@@ -378,6 +390,23 @@ def main() -> int:
         )
 
     print("\nAll checkpoints processed successfully.")
+
+    # Generate summary metrics report
+    print("\n=== Generating Summary Metrics Report ===")
+    args.summary_output_dir.mkdir(parents=True, exist_ok=True)
+    _run_command(
+        [
+            "uv",
+            "run",
+            "--package",
+            "evaluation",
+            "run-people-gator-retrieval-metrics-summary-pdf",
+            str(checkpoints_root),
+            "--output-dir",
+            str(args.summary_output_dir.resolve()),
+        ]
+    )
+
     return 0
 
 
