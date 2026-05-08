@@ -218,23 +218,29 @@ def _process_checkpoint(
 
     print(f"\n=== Processing checkpoint: {checkpoint_path} ===")
 
-    _run_command(
-        [
-            "uv",
-            "run",
-            "--package",
-            "evaluation",
-            "run-people-gator-embeddings",
-            "--jsonl-path",
-            str(args.jsonl_path.resolve()),
-            "--images-root",
-            str(args.images_root.resolve()),
-            "--finetuned-model",
-            str(checkpoint_path.resolve()),
-            "--output-dir",
-            str(embeddings_dir.resolve()),
-        ]
-    )
+    embeddings_file = embeddings_dir / "embeddings.npy"
+    image_paths_file = embeddings_dir / "image_paths.txt"
+
+    if embeddings_file.exists() and image_paths_file.exists():
+        print(f"Embeddings for this model exist, skipping with embeddings generation. Proceeding to next step.")
+    else:
+        _run_command(
+            [
+                "uv",
+                "run",
+                "--package",
+                "evaluation",
+                "run-people-gator-embeddings",
+                "--jsonl-path",
+                str(args.jsonl_path.resolve()),
+                "--images-root",
+                str(args.images_root.resolve()),
+                "--finetuned-model",
+                str(checkpoint_path.resolve()),
+                "--output-dir",
+                str(embeddings_dir.resolve()),
+            ]
+        )
 
     _write_dataset_config(template=template, output_path=dataset_cfg, embeddings_dir=embeddings_dir)
 
