@@ -300,10 +300,10 @@ def _plot_metric_series(
         new_max = ylim[1] if ylim[1] is not None else cur_max
         ax.set_ylim(new_min, new_max)
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="best")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0))
+    # fig.tight_layout()
 
-    fig.savefig(output_path, format="pdf")
+    fig.savefig(output_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {output_path}")
 
@@ -330,10 +330,10 @@ def _plot_det_curves(
             fpr, fnr, eer = steps_map[step]
             _draw_det_line(ax, fpr, fnr, eer, label=f"step {step}", color=color)
 
-        ax.legend(loc="upper right", fontsize="small", ncol=2)
-        fig.tight_layout()
+        ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+        # fig.tight_layout()
         out_path = output_dir / f"det_{_sanitize_for_filename(config_name)}.pdf"
-        fig.savefig(out_path, format="pdf")
+        fig.savefig(out_path, format="pdf", bbox_inches="tight")
         plt.close(fig)
         print(f"Saved: {out_path}")
 
@@ -352,10 +352,10 @@ def _plot_det_curves(
         fpr, fnr, eer = steps_map[best_step]
         _draw_det_line(ax, fpr, fnr, eer, label=f"{config_name} (step {best_step})")
 
-    ax.legend(loc="upper right", fontsize="small")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+    # fig.tight_layout()
     out_path = output_dir / "det_summary_best.pdf"
-    fig.savefig(out_path, format="pdf")
+    fig.savefig(out_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")
 

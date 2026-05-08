@@ -91,10 +91,10 @@ def _plot_metric_series(
         ax.plot(steps, values, marker="o", label=config_name, markersize=4)
 
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="best", fontsize="small")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+    # fig.tight_layout()
 
-    fig.savefig(output_path, format="pdf")
+    fig.savefig(output_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {output_path}")
 
@@ -114,10 +114,10 @@ def _plot_det_curves(
         fpr, fnr, eer = steps_map[best_step]
         _draw_det_line(ax, fpr, fnr, eer, label=f"{config_name} (step {best_step})")
 
-    ax.legend(loc="upper right", fontsize="small")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+    # fig.tight_layout()
     out_path = output_dir / "det_summary_best_wikiface.pdf"
-    fig.savefig(out_path, format="pdf")
+    fig.savefig(out_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")
 
