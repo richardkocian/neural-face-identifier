@@ -53,12 +53,19 @@ def _find_files(roots: list[Path], suffix: str) -> list[Path]:
     files: list[Path] = []
     for root in roots:
         resolved = root.resolve()
+        print(f"Searching for *{suffix} in {resolved}...")
         if not resolved.exists() or not resolved.is_dir():
             print(f"WARNING: root is not an existing directory, skipping: {resolved}", file=sys.stderr)
             continue
-        files.extend(
-            p for p in resolved.rglob(f"*{suffix}") if p.is_file() and p.name.endswith(suffix)
-        )
+        
+        count = 0
+        for p in resolved.rglob(f"*{suffix}"):
+            if p.is_file() and p.name.endswith(suffix):
+                files.append(p)
+                count += 1
+                if count % 10 == 0:
+                    print(f"  Found {count} files so far...", end="\r", flush=True)
+        print(f"  Found total {count} files.")
     return sorted(files)
 
 
@@ -70,13 +77,10 @@ def _extract_step(path: Path) -> int | None:
 
 
 def _extract_config_name(path: Path) -> str:
-    # Example: peoplegator_augmented_lr_1e-5_steps_2000_20260426_232940_step400.wikiface.metrics.csv
-    # Config name is the part before _stepN
-    name = path.name
-    match = STEP_RE.search(name)
-    if match:
-        return name[: match.start()]
-    return name.split(".")[0]
+    # Match logic from people_gator: use parent directory name if it's not generic
+    if path.parent.name == "evaluation_artifacts_wikiface":
+        return path.parent.parent.name
+    return path.parent.name
 
 
 def _sanitize_for_filename(text: str) -> str:
@@ -212,7 +216,10 @@ def main() -> int:
         lambda: defaultdict(list)
     )
 
-    for metric_file in metric_files:
+    print(f"Parsing {len(metric_files)} metrics files...")
+    for i, metric_file in enumerate(metric_files):
+        if (i + 1) % 5 == 0:
+            print(f"  Processed {i+1}/{len(metric_files)} metrics files...", end="\r", flush=True)
         step = _extract_step(metric_file)
         if step is None:
             continue
@@ -227,9 +234,13 @@ def main() -> int:
                     series[("accuracy", top_k)][config_name].append((step, accuracy))
                 except (KeyError, TypeError, ValueError):
                     continue
+    print(f"  Finished parsing metrics.")
 
     det_series: dict[str, dict[int, tuple[np.ndarray, np.ndarray, float]]] = defaultdict(dict)
-    for det_file in det_files:
+    print(f"Parsing {len(det_files)} DET files...")
+    for i, det_file in enumerate(det_files):
+        if (i + 1) % 5 == 0:
+            print(f"  Processed {i+1}/{len(det_files)} DET files...", end="\r", flush=True)
         step = _extract_step(det_file)
         if step is None:
             continue
@@ -250,6 +261,7 @@ def main() -> int:
                 eer_idx = int(np.argmin(np.abs(fpr_arr - fnr_arr)))
                 eer = float((fpr_arr[eer_idx] + fnr_arr[eer_idx]) / 2.0)
                 det_series[config_name][step] = (fpr_arr, fnr_arr, eer)
+    print(f"  Finished parsing DET files.")
 
     # Plot accuracies
     for (metric_name, top_k), config_map in sorted(series.items()):
