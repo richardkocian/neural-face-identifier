@@ -287,13 +287,12 @@ if __name__ == "__main__":
             if is_rank0:
                 print(f"Step {step}: Unfreezing backbone and resetting optimizer.")
             
-            # Odemknout parametry
-            # Pokud máte model v DDP, přistupujte k němu přes .module
+            # unlock parameters
             m = model.module if is_ddp else model
             for param in m.backbone.parameters():
                 param.requires_grad = True
             
-            # DŮLEŽITÉ: Musíte znovu vytvořit optimizér, aby věděl o nových parametrech
+            # create new optimizer with the same state for the head but fresh state for the backbone
             optim = optim_dict[args.optim](
                 model.parameters(),
                 lr=lr_schedule.get_lr(step),
