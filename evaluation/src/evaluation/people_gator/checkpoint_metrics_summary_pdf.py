@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import itertools
 import re
 import sys
 from collections import defaultdict
@@ -17,6 +18,14 @@ METRICS_SUFFIX = ".retrieval.union.tst.metrics.csv"
 DET_SUFFIX = ".retrieval.union.tst.det.csv"
 NON_METRIC_COLUMNS = {"top_k", "ignore_index", "count"}
 MINIMIZING_METRICS = {"fallout", "error_rate", "fnr", "fpr", "eer"}
+
+
+def _get_styles() -> itertools.cycle:
+    # Use tab20 colors and 4 different linestyles for maximum variety
+    colors = plt.get_cmap("tab20").colors
+    linestyles = ["-", "--", "-.", ":"]
+    # Cycle through (linestyle, color) pairs
+    return itertools.cycle(itertools.product(linestyles, colors))
 
 
 def _is_minimizing(metric_name: str) -> bool:
@@ -245,6 +254,7 @@ def main() -> int:
                 baseline,
                 output_dir / closeup_name,
                 ylim=ylim,
+                xlim_max=4000,
                 title_suffix=" (closeup)",
             )
 
@@ -262,10 +272,12 @@ def _plot_metric_series(
     baseline: float | None,
     output_path: Path,
     ylim: tuple[float, float] | None = None,
+    xlim_max: float | None = None,
     title_suffix: str = "",
 ) -> None:
     fig, ax = plt.subplots(figsize=(11, 6))
     plotted_any = False
+    styles = _get_styles()
 
     for config_name in sorted(config_map):
         points = sorted(config_map[config_name], key=lambda x: x[0])
@@ -273,7 +285,16 @@ def _plot_metric_series(
             continue
         steps = [p[0] for p in points]
         values = [p[1] for p in points]
-        ax.plot(steps, values, marker="o", label=config_name)
+        linestyle, color = next(styles)
+        ax.plot(
+            steps,
+            values,
+            marker="o",
+            label=config_name,
+            color=color,
+            linestyle=linestyle,
+            markersize=4,
+        )
         plotted_any = True
 
     if baseline is not None:
@@ -299,11 +320,13 @@ def _plot_metric_series(
         new_min = ylim[0] if ylim[0] is not None else cur_min
         new_max = ylim[1] if ylim[1] is not None else cur_max
         ax.set_ylim(new_min, new_max)
+    if xlim_max:
+        ax.set_xlim(None, xlim_max)
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="best")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0))
+    # fig.tight_layout()
 
-    fig.savefig(output_path, format="pdf")
+    fig.savefig(output_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {output_path}")
 
@@ -330,10 +353,10 @@ def _plot_det_curves(
             fpr, fnr, eer = steps_map[step]
             _draw_det_line(ax, fpr, fnr, eer, label=f"step {step}", color=color)
 
-        ax.legend(loc="upper right", fontsize="small", ncol=2)
-        fig.tight_layout()
+        ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+        # fig.tight_layout()
         out_path = output_dir / f"det_{_sanitize_for_filename(config_name)}.pdf"
-        fig.savefig(out_path, format="pdf")
+        fig.savefig(out_path, format="pdf", bbox_inches="tight")
         plt.close(fig)
         print(f"Saved: {out_path}")
 
@@ -346,16 +369,26 @@ def _plot_det_curves(
             ax, *baseline_det, label="baseline", color="red", linestyle="-", linewidth=2.5, zorder=10
         )
 
+    styles = _get_styles()
     for config_name in sorted(det_series.keys()):
         steps_map = det_series[config_name]
         best_step = min(steps_map.keys(), key=lambda s: steps_map[s][2])
         fpr, fnr, eer = steps_map[best_step]
-        _draw_det_line(ax, fpr, fnr, eer, label=f"{config_name} (step {best_step})")
+        linestyle, color = next(styles)
+        _draw_det_line(
+            ax,
+            fpr,
+            fnr,
+            eer,
+            label=f"{config_name} (step {best_step})",
+            color=color,
+            linestyle=linestyle,
+        )
 
-    ax.legend(loc="upper right", fontsize="small")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+    # fig.tight_layout()
     out_path = output_dir / "det_summary_best.pdf"
-    fig.savefig(out_path, format="pdf")
+    fig.savefig(out_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")
 

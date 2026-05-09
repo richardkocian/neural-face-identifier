@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import itertools
 import re
 import sys
 from collections import defaultdict
@@ -16,6 +17,14 @@ from scipy.stats import norm
 STEP_RE = re.compile(r"_step_(\d+)\.(?:wikiface\.metrics\.csv|top1_det_wikiface\.csv)$")
 METRICS_SUFFIX = ".wikiface.metrics.csv"
 DET_SUFFIX = ".top1_det_wikiface.csv"
+
+
+def _get_styles() -> itertools.cycle:
+    # Use tab20 colors and 4 different linestyles for maximum variety
+    colors = plt.get_cmap("tab20").colors
+    linestyles = ["-", "--", "-.", ":"]
+    # Cycle through (linestyle, color) pairs
+    return itertools.cycle(itertools.product(linestyles, colors))
 
 
 def _parse_args() -> argparse.Namespace:
@@ -79,22 +88,35 @@ def _plot_metric_series(
     top_k: int,
     config_map: dict[str, list[tuple[int, float]]],
     output_path: Path,
+    xlim_max: float | None = None,
 ) -> None:
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlabel("Training Step")
     ax.set_ylabel(f"{metric_name.capitalize()} (top_k={top_k})")
     ax.set_title(f"WikiFace {metric_name.capitalize()} vs Step (Top-K={top_k})")
 
+    styles = _get_styles()
     for config_name, points in sorted(config_map.items()):
         points.sort(key=lambda x: x[0])  # Sort by step
         steps, values = zip(*points)
-        ax.plot(steps, values, marker="o", label=config_name, markersize=4)
+        linestyle, color = next(styles)
+        ax.plot(
+            steps,
+            values,
+            marker="o",
+            label=config_name,
+            color=color,
+            linestyle=linestyle,
+            markersize=4,
+        )
 
+    if xlim_max:
+        ax.set_xlim(None, xlim_max)
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="best", fontsize="small")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+    # fig.tight_layout()
 
-    fig.savefig(output_path, format="pdf")
+    fig.savefig(output_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {output_path}")
 
@@ -107,17 +129,27 @@ def _plot_det_curves(
     fig, ax = plt.subplots(figsize=(8, 7))
     _setup_det_ax(ax, "WikiFace Summary Best DET Curves")
 
+    styles = _get_styles()
     for config_name in sorted(det_series.keys()):
         steps_map = det_series[config_name]
         # Find step with minimum EER
         best_step = min(steps_map.keys(), key=lambda s: steps_map[s][2])
         fpr, fnr, eer = steps_map[best_step]
-        _draw_det_line(ax, fpr, fnr, eer, label=f"{config_name} (step {best_step})")
+        linestyle, color = next(styles)
+        _draw_det_line(
+            ax,
+            fpr,
+            fnr,
+            eer,
+            label=f"{config_name} (step {best_step})",
+            color=color,
+            linestyle=linestyle,
+        )
 
-    ax.legend(loc="upper right", fontsize="small")
-    fig.tight_layout()
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
+    # fig.tight_layout()
     out_path = output_dir / "det_summary_best_wikiface.pdf"
-    fig.savefig(out_path, format="pdf")
+    fig.savefig(out_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")
 
@@ -147,6 +179,8 @@ def _draw_det_line(
     fnr: np.ndarray,
     eer: float,
     label: str,
+    color: str | np.ndarray | None = None,
+    linestyle: str = "-",
 ) -> None:
     det_clip = 1e-7
     fpr_safe = np.clip(fpr, det_clip, 1.0 - det_clip)
@@ -156,6 +190,8 @@ def _draw_det_line(
         norm.ppf(fnr_safe),
         label=f"{label} (EER={eer:.4f})",
         linewidth=1.5,
+        color=color,
+        linestyle=linestyle,
     )
 
 
@@ -217,8 +253,19 @@ def main() -> int:
 
     # Plot accuracies
     for (metric_name, top_k), config_map in sorted(series.items()):
+        # 1. Standard Plot
         out_name = f"wikiface_{_sanitize_for_filename(metric_name)}_topk_{top_k}.pdf"
         _plot_metric_series(metric_name, top_k, config_map, output_dir / out_name)
+
+        # 2. Closeup Plot (limited to 4000 steps)
+        closeup_name = f"wikiface_{_sanitize_for_filename(metric_name)}_topk_{top_k}_closeup.pdf"
+        _plot_metric_series(
+            metric_name,
+            top_k,
+            config_map,
+            output_dir / closeup_name,
+            xlim_max=4000,
+        )
 
     # Plot DET curves
     if det_series:
