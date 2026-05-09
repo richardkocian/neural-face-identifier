@@ -1,7 +1,0 @@
-query_name: Ivan Govorkovich
-predicted_gallery_name: F. S. Thürner
-correct_gallery_name: Ivan Govorkovich
-top1_cosine_score: 0.946957
-query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/people_gator/people_gator__data/d/daee135a-d1f4-44b5-bc56-688b7e3d3da2.peoplegator_aligned_crops/88794db7-f13c-476e-9474-546cc92bd2d2__image_3__face_0.jpg
-predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/people_gator/people_gator__data/d/665e1443-19ed-443e-9309-223d5d173e6d.peoplegator_aligned_crops/1495195f-2506-4ab7-ab68-241c2a5ea27b__image_6__face_1.jpg
-correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/people_gator/people_gator__data/d/3db8ff48-028b-4919-b6f7-eb1ac1ac5e3c.peoplegator_aligned_crops/13d41d30-e40f-4468-8659-2bb701e18d48__image_1__face_2.jpg

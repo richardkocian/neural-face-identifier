@@ -1,7 +1,0 @@
-query_name: Allard Pierson
-predicted_gallery_name: Charles Smart Roy
-correct_gallery_name: Allard Pierson
-top1_cosine_score: 0.756051
-query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Allard Pierson/1_01.jpg
-predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Charles Smart Roy/0_01.jpg
-correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Allard Pierson/0_01.jpg
