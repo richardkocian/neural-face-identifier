@@ -129,6 +129,36 @@ Filtering behavior:
   AugmentationType.NoAug keeps all rows, any other filter returns an empty dataset.
 - If the augmentation column contains unknown values, dataset construction raises a ValueError.
 
+## Finetuning example
+
+Finetuning command example, paths need to be adjusted:
+
+```bash
+uv sync
+uv run --package datasets people-gator
+uv run --package training run-training
+uv run training/src/training/timm-face-copy/train.py \
+ --backbone "hf_hub:gaunernst/vit_small_patch8_gap_112.cosface_ms1mv3" \
+  --loss "cosface" \
+  --total_steps 4000 \
+  --freeze_steps 2000 \
+  --n_classes 469 \
+  --eval_interval 100 \
+  --ds_path "/path/to/datasets/root/" \
+  --train_peoplegator_jsonl "/datasets/dataset_defs/people_gator__corresponding_faces__2026-02-11.dev.cleaned.all.jsonl" \
+  --train_peoplegator_images_root "/datasets/people_gator__data" \
+  --val_peoplegator_jsonl "/datasets/dataset_defs/people_gator__corresponding_faces__2026-02-11.test.cleaned.all.jsonl" \
+  --val_peoplegator_images_root "/datasets/people_gator__data" \
+  --batch_size 16 \
+  --n_workers 4 \
+  --lr 1e-4 \
+  --warmup 0.1 \
+  --run_name "peoplegator_augmented_lr_1e-4_steps_4000_freeze_2000_n-classes_469_2026-05-09" \
+  --skip_insightface \
+  --wandb_api_key "wandb_api_key" # optional for wandb logging, can be disabled by setting --wandb_disabled
+```
+
+- `--freeze_steps` optional, specifies number of steps with freezed backbone
 
 ## Evaluation defaults and examples:
 
