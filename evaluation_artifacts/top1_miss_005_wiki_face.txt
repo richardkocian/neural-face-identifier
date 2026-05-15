@@ -1,0 +1,7 @@
+query_name: Leon Athanase Gosselin
+predicted_gallery_name: SSD0DK~H
+correct_gallery_name: Leon Athanase Gosselin
+top1_cosine_score: 0.676169
+query_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Leon Athanase Gosselin/5_01.jpg
+predicted_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/SSD0DK~H/0_01.jpg
+correct_gallery_path: /home/richardkocian/PycharmProjects/neural-face-identifier/wiki_face_112_fin/Leon Athanase Gosselin/0_01.jpg

@@ -1,0 +1,7 @@
+top1_cosine_score: 0.530369
+query_name: Václav Kopecký
+predicted_gallery_name: J. V. Stalin
+correct_gallery_name: Václav Kopecký
+query_path: people_gator/people_gator__data/kvkli/dbbed913-14cf-4b4b-8d23-82fd4a659404.peoplegator_aligned_crops/73303936-ca9b-11e5-a54b-001b21d0d3a4__photograph_1__face_3.jpg
+predicted_gallery_path: people_gator/people_gator__data/kvkli/2d6623ee-848a-4e8e-b9ee-0854871291e7.peoplegator_aligned_crops/b25aa56c-ca99-11e5-a54b-001b21d0d3a4__photograph_0__face_0.jpg
+correct_gallery_path: people_gator/people_gator__data/kvkli/08aa34f2-65f7-49bf-8088-9acfd29d8849.peoplegator_aligned_crops/07df2dc0-ca96-11e5-a54b-001b21d0d3a4__photograph_0__face_1.jpg

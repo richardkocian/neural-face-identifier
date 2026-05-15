@@ -368,6 +368,3 @@ DET curve plots:
         - 7 aliased names
 - 1103 duplicate rows (same name, same face)
 - after conflict resolution: 1999 unique name face pairs found
-
-# Evaluation results
-All diagnostic visualizations and graphs for every calculated metric are provided online for high-resolution inspection at the following Google Drive link: https://drive.google.com/drive/folders/1XMefGnoSgQEJC2ucQQFIpo0h0y7TJJOm?usp=share_link
