@@ -360,9 +360,47 @@ def _plot_det_curves(
         plt.close(fig)
         print(f"Saved: {out_path}")
 
-    # 2. Summary Best DET plot
+    best_entries: list[tuple[str, int, np.ndarray, np.ndarray, float]] = []
+    for config_name in sorted(det_series.keys()):
+        steps_map = det_series[config_name]
+        best_step = min(steps_map.keys(), key=lambda s: steps_map[s][2])
+        fpr, fnr, eer = steps_map[best_step]
+        best_entries.append((config_name, best_step, fpr, fnr, eer))
+
+    # 2. Summary Best DET plot (all curves)
+    _plot_det_summary(
+        best_entries=best_entries,
+        baseline_det=baseline_det,
+        out_path=output_dir / "det_summary_best.pdf",
+        title="Summary Best DET Curves",
+    )
+
+    # 3. Summary Top-5 DET plot (baseline + 5 best EER curves)
+    top5_entries = sorted(best_entries, key=lambda e: e[4])[:5]
+    _plot_det_summary(
+        best_entries=top5_entries,
+        baseline_det=baseline_det,
+        out_path=output_dir / "det_summary_best_top5.pdf",
+        title="Summary Top-5 Best DET Curves",
+    )
+
+    # 4. Detail plot (linear scale, focused range) for better readability of close curves
+    _plot_det_detail(
+        best_entries=top5_entries,
+        baseline_det=baseline_det,
+        out_path=output_dir / "det_summary_best_top5_detail.pdf",
+        title="Summary Top-5 Best DET Curves (detail)",
+    )
+
+
+def _plot_det_summary(
+    best_entries: list[tuple[str, int, np.ndarray, np.ndarray, float]],
+    baseline_det: tuple[np.ndarray, np.ndarray, float] | None,
+    out_path: Path,
+    title: str,
+) -> None:
     fig, ax = plt.subplots(figsize=(8, 7))
-    _setup_det_ax(ax, "Summary Best DET Curves")
+    _setup_det_ax(ax, title)
 
     if baseline_det:
         _draw_det_line(
@@ -370,10 +408,7 @@ def _plot_det_curves(
         )
 
     styles = _get_styles()
-    for config_name in sorted(det_series.keys()):
-        steps_map = det_series[config_name]
-        best_step = min(steps_map.keys(), key=lambda s: steps_map[s][2])
-        fpr, fnr, eer = steps_map[best_step]
+    for config_name, best_step, fpr, fnr, eer in best_entries:
         linestyle, color = next(styles)
         _draw_det_line(
             ax,
@@ -386,8 +421,64 @@ def _plot_det_curves(
         )
 
     ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
-    # fig.tight_layout()
-    out_path = output_dir / "det_summary_best.pdf"
+    fig.savefig(out_path, format="pdf", bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {out_path}")
+
+
+def _compute_detail_max_percent(
+    best_entries: list[tuple[str, int, np.ndarray, np.ndarray, float]],
+    baseline_det: tuple[np.ndarray, np.ndarray, float] | None,
+) -> float:
+    eers = [entry[4] for entry in best_entries]
+    if baseline_det is not None:
+        eers.append(baseline_det[2])
+    if not eers:
+        return 5.0
+    # Focus around low-error region where curves differ the most visually.
+    return float(np.clip(max(eers) * 100.0 * 3.0, 2.0, 20.0))
+
+
+def _plot_det_detail(
+    best_entries: list[tuple[str, int, np.ndarray, np.ndarray, float]],
+    baseline_det: tuple[np.ndarray, np.ndarray, float] | None,
+    out_path: Path,
+    title: str,
+) -> None:
+    detail_max = _compute_detail_max_percent(best_entries, baseline_det)
+    fig, ax = plt.subplots(figsize=(8, 7))
+    ax.set_xlim(0.0, detail_max)
+    ax.set_ylim(0.0, detail_max)
+    ax.set_xlabel("False Positive Rate (%)")
+    ax.set_ylabel("False Negative Rate (%)")
+    ax.set_title(f"{title} ≤ {detail_max:.1f}%")
+    ax.grid(True, alpha=0.3)
+
+    if baseline_det:
+        b_fpr, b_fnr, b_eer = baseline_det
+        ax.plot(
+            b_fpr * 100.0,
+            b_fnr * 100.0,
+            color="red",
+            linestyle="-",
+            linewidth=2.5,
+            zorder=10,
+            label=f"baseline (EER={b_eer:.4f})",
+        )
+
+    styles = _get_styles()
+    for config_name, best_step, fpr, fnr, eer in best_entries:
+        linestyle, color = next(styles)
+        ax.plot(
+            fpr * 100.0,
+            fnr * 100.0,
+            color=color,
+            linestyle=linestyle,
+            linewidth=1.8,
+            label=f"{config_name} (step {best_step}, EER={eer:.4f})",
+        )
+
+    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
     fig.savefig(out_path, format="pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")
