@@ -49,8 +49,8 @@ def _get_closeup_ylim(
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Find all *.retrieval.union.tst.det.csv files under one or more roots "
-            "and generate DET summary PDFs."
+            "Find all *.retrieval.union.tst.metrics.csv and *.retrieval.union.tst.det.csv files under one or more roots "
+            "and generate summary line charts and DET curves as PDF files."
         )
     )
     parser.add_argument(
@@ -69,7 +69,20 @@ def _parse_args() -> argparse.Namespace:
         "--baseline-dir",
         type=Path,
         default=None,
-        help="Optional directory containing baseline retrieval.union.tst.det.csv.",
+        help="Optional directory containing baseline results (retrieval.union.tst.metrics.csv and retrieval.union.tst.det.csv).",
+    )
+    parser.add_argument(
+        "--metrics",
+        nargs="+",
+        default=None,
+        help="Optional allowlist of metric names (e.g. hitrate precision mrr).",
+    )
+    parser.add_argument(
+        "--top-k",
+        nargs="+",
+        type=int,
+        default=None,
+        help="Optional allowlist of top_k values.",
     )
     return parser.parse_args()
 
@@ -109,10 +122,31 @@ def main() -> int:
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    metrics_filter = set(args.metrics) if args.metrics else None
+    top_k_filter = set(args.top_k) if args.top_k else None
+
     # Load baseline if provided
+    baseline_metrics: dict[tuple[str, int], float] = {}
     baseline_det: tuple[np.ndarray, np.ndarray, float] | None = None
 
     if args.baseline_dir:
+        b_metrics_file = args.baseline_dir / "retrieval.union.tst.metrics.csv"
+        if b_metrics_file.exists():
+            with b_metrics_file.open("r", encoding="utf-8", newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    try:
+                        top_k = int(row["top_k"])
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    for col, val in row.items():
+                        if col in NON_METRIC_COLUMNS or val is None or val == "":
+                            continue
+                        try:
+                            baseline_metrics[(col, top_k)] = float(val)
+                        except ValueError:
+                            continue
+
         b_det_file = args.baseline_dir / "retrieval.union.tst.det.csv"
         if b_det_file.exists():
             with b_det_file.open("r", encoding="utf-8", newline="") as f:
@@ -131,10 +165,49 @@ def main() -> int:
                     eer = float((fpr_arr[eer_idx] + fnr_arr[eer_idx]) / 2.0)
                     baseline_det = (fpr_arr, fnr_arr, eer)
 
+    metric_files = _find_files(args.roots, METRICS_SUFFIX)
     det_files = _find_files(args.roots, DET_SUFFIX)
 
-    if not det_files:
-        raise FileNotFoundError("No *.retrieval.union.tst.det.csv files found.")
+    if not metric_files and not det_files:
+        raise FileNotFoundError("No *.retrieval.union.tst.metrics.csv or *.retrieval.union.tst.det.csv files found.")
+
+    series: dict[tuple[str, int], dict[str, list[tuple[int, float]]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+
+    for metric_file in metric_files:
+        step = _extract_step(metric_file)
+        if step is None:
+            print(f"WARNING: could not parse step from file name, skipping: {metric_file}", file=sys.stderr)
+            continue
+        config_name = _extract_config_name(metric_file)
+
+        with metric_file.open("r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames is None:
+                continue
+
+            for row in reader:
+                try:
+                    top_k = int(row["top_k"])
+                except (KeyError, TypeError, ValueError):
+                    continue
+
+                if top_k_filter is not None and top_k not in top_k_filter:
+                    continue
+
+                for column, raw_value in row.items():
+                    if column in NON_METRIC_COLUMNS:
+                        continue
+                    if metrics_filter is not None and column not in metrics_filter:
+                        continue
+                    if raw_value is None or raw_value == "":
+                        continue
+                    try:
+                        value = float(raw_value)
+                    except ValueError:
+                        continue
+                    series[(column, top_k)][config_name].append((step, value))
 
     det_series: dict[str, dict[int, tuple[np.ndarray, np.ndarray, float]]] = defaultdict(dict)
     for det_file in det_files:
@@ -159,10 +232,35 @@ def main() -> int:
                 eer = float((fpr_arr[eer_idx] + fnr_arr[eer_idx]) / 2.0)
                 det_series[config_name][step] = (fpr_arr, fnr_arr, eer)
 
+    if not series:
+        raise RuntimeError("No plottable metric data found after filtering/parsing.")
+
+    for (metric_name, top_k), config_map in sorted(series.items(), key=lambda x: (x[0][0], x[0][1])):
+        baseline = baseline_metrics.get((metric_name, top_k))
+
+        # 1. Standard Plot
+        out_name = f"{_sanitize_for_filename(metric_name)}_topk_{top_k}.pdf"
+        _plot_metric_series(metric_name, top_k, config_map, baseline, output_dir / out_name)
+
+        # 2. Closeup Plot
+        all_values = [v for points in config_map.values() for _, v in points]
+        ylim = _get_closeup_ylim(metric_name, all_values, baseline)
+        if ylim:
+            closeup_name = f"{_sanitize_for_filename(metric_name)}_topk_{top_k}_closeup.pdf"
+            _plot_metric_series(
+                metric_name,
+                top_k,
+                config_map,
+                baseline,
+                output_dir / closeup_name,
+                ylim=ylim,
+                xlim_max=4000,
+                title_suffix=" (closeup)",
+            )
+
     # Plot DET curves
-    if not det_series:
-        raise RuntimeError("No plottable DET data found after parsing.")
-    _plot_det_curves(det_series, baseline_det, output_dir)
+    if det_series:
+        _plot_det_curves(det_series, baseline_det, output_dir)
 
     return 0
 
@@ -294,37 +392,6 @@ def _plot_det_curves(
     plt.close(fig)
     print(f"Saved: {out_path}")
 
-    # 3. Summary Best DET plot on log-log axes (often clearer for very close curves)
-    fig, ax = plt.subplots(figsize=(8, 7))
-    _setup_det_log_ax(ax, "Summary Best DET Curves (log-log)")
-
-    if baseline_det:
-        _draw_det_line_log(
-            ax, *baseline_det, label="baseline", color="red", linestyle="-", linewidth=2.5, zorder=10
-        )
-
-    styles = _get_styles()
-    for config_name in sorted(det_series.keys()):
-        steps_map = det_series[config_name]
-        best_step = min(steps_map.keys(), key=lambda s: steps_map[s][2])
-        fpr, fnr, eer = steps_map[best_step]
-        linestyle, color = next(styles)
-        _draw_det_line_log(
-            ax,
-            fpr,
-            fnr,
-            eer,
-            label=f"{config_name} (step {best_step})",
-            color=color,
-            linestyle=linestyle,
-        )
-
-    ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize="small")
-    out_path = output_dir / "det_summary_best_loglog.pdf"
-    fig.savefig(out_path, format="pdf", bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {out_path}")
-
 
 def _setup_det_ax(ax: plt.Axes, title: str) -> None:
     det_clip = 1e-4
@@ -348,18 +415,6 @@ def _setup_det_ax(ax: plt.Axes, title: str) -> None:
     ax.grid(True, alpha=0.3)
 
 
-def _setup_det_log_ax(ax: plt.Axes, title: str) -> None:
-    det_clip = 1e-5
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlim(det_clip, 1.0)
-    ax.set_ylim(det_clip, 1.0)
-    ax.set_xlabel("False Positive Rate (fraction, log scale)")
-    ax.set_ylabel("False Negative Rate (fraction, log scale)")
-    ax.set_title(title)
-    ax.grid(True, which="both", alpha=0.3)
-
-
 def _draw_det_line(
     ax: plt.Axes,
     fpr: np.ndarray,
@@ -377,31 +432,6 @@ def _draw_det_line(
     ax.plot(
         norm.ppf(fpr_safe),
         norm.ppf(fnr_safe),
-        label=f"{label} (EER={eer:.4f})",
-        color=color,
-        linestyle=linestyle,
-        linewidth=linewidth,
-        zorder=zorder,
-    )
-
-
-def _draw_det_line_log(
-    ax: plt.Axes,
-    fpr: np.ndarray,
-    fnr: np.ndarray,
-    eer: float,
-    label: str,
-    color: str | np.ndarray | None = None,
-    linestyle: str = "-",
-    linewidth: float = 1.5,
-    zorder: int = 2,
-) -> None:
-    det_clip = 1e-7
-    fpr_safe = np.clip(fpr, det_clip, 1.0 - det_clip)
-    fnr_safe = np.clip(fnr, det_clip, 1.0 - det_clip)
-    ax.plot(
-        fpr_safe,
-        fnr_safe,
         label=f"{label} (EER={eer:.4f})",
         color=color,
         linestyle=linestyle,
